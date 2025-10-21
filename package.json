@@ -1,0 +1,33 @@
+{
+  "name": "ideavault",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.33.0",
+    "@google/generative-ai": "^0.24.1",
+    "@headlessui/react": "^2.2.9",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.58.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "tailwindcss": "^4"
+  }
+}
