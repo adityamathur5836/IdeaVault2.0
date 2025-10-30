@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   Lightbulb,
   Search,
@@ -101,6 +102,9 @@ export default function Navigation() {
 
           {/* Right side - Auth and mobile menu */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle variant="ghost" size="icon" />
+
             {isSignedIn ? (
               <div className="flex items-center space-x-4">
                 <Link href="/settings">
@@ -108,7 +112,7 @@ export default function Navigation() {
                     <Settings className="h-4 w-4" />
                   </Button>
                 </Link>
-                <UserButton 
+                <UserButton
                   afterSignOutUrl="/"
                   appearance={{
                     elements: {

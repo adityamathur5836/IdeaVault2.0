@@ -3,13 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Plus, Target, CheckCircle, Clock, TrendingUp, Edit, Trash2, Calendar, AlertCircle } from 'lucide-react';
+import { Plus, Target, CheckCircle, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 import Navigation from '@/components/layout/Navigation';
 import Footer from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/components/ui/Toast';
 
 export default function MilestonesPage() {
@@ -52,40 +50,62 @@ export default function MilestonesPage() {
     try {
       setLoading(true);
 
-      // For now, use mock data until database is properly set up
+      // Professional milestone examples to demonstrate the feature
       const mockMilestones = [
         {
           id: 1,
-          title: "Complete MVP Development",
-          description: "Build the core features for the AI productivity assistant",
-          status: "in_progress",
+          title: "Complete Market Research & Validation",
+          description: "Conduct comprehensive market analysis, identify target customer segments, and validate product-market fit through surveys and interviews with 100+ potential customers.",
+          status: "completed",
           priority: "high",
-          target_date: "2024-02-15",
-          completion_percentage: 75,
+          target_date: "2024-01-31",
+          completion_percentage: 100,
           created_at: "2024-01-01",
-          user_ideas: { title: "AI Productivity Assistant", category: "Productivity" }
+          user_ideas: { title: "AI-Powered Personal Finance Assistant", category: "Finance" }
         },
         {
           id: 2,
-          title: "User Testing Phase",
-          description: "Conduct user testing with 50 beta users",
-          status: "not_started",
-          priority: "medium",
-          target_date: "2024-03-01",
-          completion_percentage: 0,
-          created_at: "2024-01-02",
-          user_ideas: { title: "AI Productivity Assistant", category: "Productivity" }
+          title: "Develop Minimum Viable Product (MVP)",
+          description: "Build core features including expense tracking, budget recommendations, and basic AI insights. Focus on essential functionality for initial user testing.",
+          status: "in_progress",
+          priority: "high",
+          target_date: "2024-03-15",
+          completion_percentage: 65,
+          created_at: "2024-02-01",
+          user_ideas: { title: "AI-Powered Personal Finance Assistant", category: "Finance" }
         },
         {
           id: 3,
-          title: "Launch Marketing Campaign",
-          description: "Execute go-to-market strategy",
-          status: "completed",
+          title: "Secure Initial Funding Round",
+          description: "Raise $250K seed funding through angel investors and early-stage VCs to support product development and initial marketing efforts.",
+          status: "in_progress",
           priority: "high",
-          target_date: "2024-01-30",
-          completion_percentage: 100,
-          created_at: "2024-01-03",
-          user_ideas: { title: "E-commerce Analytics Tool", category: "Analytics" }
+          target_date: "2024-04-30",
+          completion_percentage: 30,
+          created_at: "2024-02-15",
+          user_ideas: { title: "AI-Powered Personal Finance Assistant", category: "Finance" }
+        },
+        {
+          id: 4,
+          title: "Launch Beta Testing Program",
+          description: "Recruit 500 beta users, implement feedback collection system, and iterate on product based on user insights and usage analytics.",
+          status: "not_started",
+          priority: "medium",
+          target_date: "2024-05-15",
+          completion_percentage: 0,
+          created_at: "2024-02-20",
+          user_ideas: { title: "AI-Powered Personal Finance Assistant", category: "Finance" }
+        },
+        {
+          id: 5,
+          title: "Achieve Product-Market Fit",
+          description: "Reach key metrics: 40% of users actively using the app weekly, NPS score above 50, and clear evidence of organic growth and user retention.",
+          status: "not_started",
+          priority: "high",
+          target_date: "2024-07-31",
+          completion_percentage: 0,
+          created_at: "2024-03-01",
+          user_ideas: { title: "AI-Powered Personal Finance Assistant", category: "Finance" }
         }
       ];
 
@@ -191,19 +211,75 @@ export default function MilestonesPage() {
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Milestones</h1>
-            <p className="text-slate-600 mt-2">Track your progress and achieve your goals</p>
+        {/* Enhanced Header with Purpose Explanation */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">Business Milestones</h1>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Transform your business ideas into actionable goals and track your entrepreneurial journey with precision.
+            </p>
           </div>
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Milestone
-          </Button>
+
+          {/* Purpose and Instructions Section */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-8 border border-indigo-100">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-4 flex items-center">
+                  <Target className="h-6 w-6 mr-3 text-indigo-600" />
+                  What are Business Milestones?
+                </h2>
+                <p className="text-slate-700 leading-relaxed mb-4">
+                  Business milestones are critical checkpoints that mark significant achievements in your entrepreneurial journey.
+                  They help you break down complex business goals into manageable, measurable objectives.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center text-slate-700">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    Track progress on your business ideas
+                  </div>
+                  <div className="flex items-center text-slate-700">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    Set realistic timelines and deadlines
+                  </div>
+                  <div className="flex items-center text-slate-700">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    Maintain accountability and momentum
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2 text-purple-600" />
+                  How to Use This Feature
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start">
+                    <span className="bg-indigo-600 text-white text-sm font-bold rounded-full h-6 w-6 flex items-center justify-center mr-3 mt-0.5">1</span>
+                    <p className="text-slate-700">Create milestones for each business idea you're developing</p>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="bg-indigo-600 text-white text-sm font-bold rounded-full h-6 w-6 flex items-center justify-center mr-3 mt-0.5">2</span>
+                    <p className="text-slate-700">Set specific, measurable goals with realistic target dates</p>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="bg-indigo-600 text-white text-sm font-bold rounded-full h-6 w-6 flex items-center justify-center mr-3 mt-0.5">3</span>
+                    <p className="text-slate-700">Track your progress and celebrate achievements</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create Your First Milestone
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -357,15 +433,44 @@ export default function MilestonesPage() {
 
           {milestones.length === 0 ? (
             <div className="p-12 text-center">
-              <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No milestones yet</h3>
-              <p className="text-slate-600 mb-4">Create your first milestone to start tracking your progress</p>
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Create Milestone
-              </button>
+              <div className="max-w-md mx-auto">
+                <Target className="w-16 h-16 text-indigo-400 mx-auto mb-6" />
+                <h3 className="text-2xl font-semibold text-slate-900 mb-4">Ready to Start Your Journey?</h3>
+                <p className="text-slate-600 mb-6 leading-relaxed">
+                  Transform your business ideas into actionable milestones. Start by creating your first milestone to track progress and maintain momentum.
+                </p>
+
+                {/* Example Milestones */}
+                <div className="bg-slate-50 rounded-lg p-6 mb-6 text-left">
+                  <h4 className="font-semibold text-slate-900 mb-3">Example Milestones:</h4>
+                  <div className="space-y-2 text-sm text-slate-700">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      Complete market research and competitor analysis
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      Develop minimum viable product (MVP)
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      Acquire first 100 customers
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                      Reach $10K monthly recurring revenue
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Your First Milestone
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="divide-y divide-slate-200">

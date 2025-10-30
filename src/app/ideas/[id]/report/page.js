@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { DynamicLoader } from '@/components/ui/DynamicLoader';
 import { useToast } from '@/components/ui/Toast';
 import {
   FileText,
@@ -104,6 +105,8 @@ export default function IdeaReportPage() {
   const [credits, setCredits] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [activeSection, setActiveSection] = useState('business_concept');
   const [mvpPrompt, setMvpPrompt] = useState('');
 
@@ -118,11 +121,21 @@ export default function IdeaReportPage() {
   const loadReportData = async () => {
     try {
       setLoading(true);
-      const [ideaData, reportData, creditsData] = await Promise.all([
+      const [fetchedIdea, reportData, creditsData] = await Promise.all([
         getUserIdeaById(user.id, params.id),
         getIdeaReport(user.id, params.id),
         getUserCredits(user.id)
       ]);
+
+      let ideaData = fetchedIdea;
+      if (!ideaData) {
+        // Fallback to localStorage cache from generate/IdeaCard
+        try {
+          const localCache = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+          ideaData = localCache[String(params.id)] || null;
+        } catch (_) {}
+      }
+
       setIdea(ideaData);
       setReport(reportData);
       setCredits(creditsData);
@@ -135,72 +148,220 @@ export default function IdeaReportPage() {
   };
 
   const handleGenerateReport = async () => {
-    try {
-      setGenerating(true);
+    if (!idea) {
+      toast.error('No idea data available');
+      return;
+    }
 
-      // Generate report using Gemini API
+    // Prevent duplicate requests
+    if (generating) {
+      console.log('Report generation already in progress');
+      return;
+    }
+
+    setGenerating(true);
+    const startTime = Date.now();
+
+    try {
+      console.log('[Report Generation] Starting for idea:', {
+        id: params.id,
+        title: idea.title,
+        timestamp: new Date().toISOString()
+      });
+
+      // Create optimistic UI placeholder
+      const optimisticReport = {
+        business_concept: { status: 'generating...' },
+        market_intelligence: { status: 'generating...' },
+        product_strategy: { status: 'generating...' },
+        go_to_market: { status: 'generating...' },
+        financial_foundation: { status: 'generating...' },
+        evaluation: { status: 'generating...' }
+      };
+
+      // Show optimistic UI immediately
+      setReport({ report_data: optimisticReport, optimistic: true, generating: true });
+
+      // Generate checksum for validation
+      const ideaChecksum = `${idea.title}_${idea.description}_${Date.now()}`;
+      console.log('[Report Generation] Idea checksum:', ideaChecksum);
+
+      // Generate report using Gemini API with enhanced payload
       const response = await fetch('/api/generate-report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ idea }),
+        body: JSON.stringify({
+          idea,
+          ideaId: params.id,
+          checksum: ideaChecksum,
+          timestamp: Date.now()
+        }),
       });
 
       const result = await response.json();
+      const generationTime = Date.now() - startTime;
+
+      console.log('[Report Generation] API Response:', {
+        success: result.success,
+        cached: result.cached,
+        generationTime,
+        checksum: result.checksum
+      });
 
       if (!response.ok) {
         const errorMessage = result.error || `HTTP ${response.status}: Failed to generate report`;
+        console.error('[Report Generation] API Error:', {
+          status: response.status,
+          error: errorMessage,
+          generationTime
+        });
         throw new Error(errorMessage);
       }
 
-      if (result.success && result.report) {
-        // Save the report to database
-        const newReport = await createIdeaReport(user.id, params.id, result.report);
-        setReport(newReport);
+      // Validate response integrity
+      if (result.idea_id && result.idea_id !== params.id) {
+        console.warn('[Report Generation] ID Mismatch:', {
+          expected: params.id,
+          received: result.idea_id
+        });
+        toast.error('Report ID mismatch detected. Please try again.');
+        return;
+      }
 
-        // Generate MVP prompt
+      if (result.success && result.report) {
+        // Save the report to database with validation
+        try {
+          const newReport = await createIdeaReport(user.id, params.id, result.report);
+          setReport(newReport);
+          console.log('[Report Generation] Report saved successfully');
+        } catch (dbError) {
+          console.warn('[Report Generation] Database save failed, using in-memory report:', dbError.message);
+          setReport({
+            report_data: result.report,
+            idea_id: params.id,
+            generated_at: result.generated_at
+          });
+        }
+
+        // Generate MVP prompt with enhanced context
         generateMVPPrompt(idea, result.report);
 
-        toast.success('Report generated successfully');
+        const message = result.cached ?
+          `Report loaded from cache (${generationTime}ms)` :
+          `Report generated successfully (${generationTime}ms)`;
+
+        toast.success(message);
       } else {
-        throw new Error('Invalid report response');
+        throw new Error('Invalid report response structure');
       }
     } catch (error) {
-      console.error('Error generating report:', error);
-      toast.error('Failed to generate report');
+      const generationTime = Date.now() - startTime;
+      console.error('[Report Generation] Error:', {
+        message: error.message,
+        generationTime,
+        ideaId: params.id,
+        ideaTitle: idea.title
+      });
+
+      // Clear optimistic UI
+      setReport(null);
+
+      // Provide specific error feedback
+      if (error.message.includes('timeout')) {
+        toast.error('Report generation timed out. Please try again.');
+      } else if (error.message.includes('quota')) {
+        toast.error('Service temporarily unavailable. Please try again later.');
+      } else if (error.message.includes('mismatch')) {
+        toast.error('Data validation failed. Please refresh and try again.');
+      } else {
+        toast.error(`Failed to generate report: ${error.message}`);
+      }
     } finally {
       setGenerating(false);
     }
   };
 
   const generateMVPPrompt = (ideaData, reportData) => {
+    // Extract key information from report data
+    const businessConcept = reportData?.business_concept || {};
+    const productStrategy = reportData?.product_strategy || {};
+    const marketIntelligence = reportData?.market_intelligence || {};
+    const goToMarket = reportData?.go_to_market || {};
+
+    // Generate contextual, detailed MVP prompt
     const prompt = `You are Lovable (or Bolt). Create a modern, responsive frontend MVP for the following SaaS idea:
 
 **Business Concept:** ${ideaData.title}
-${ideaData.description}
+**Category:** ${ideaData.category || 'Technology'}
+**Target Audience:** ${ideaData.target_audience || goToMarket.target_audience || 'General Users'}
+**Difficulty Level:** ${ideaData.difficulty || 'Medium'}
 
-**Target Audience:** ${ideaData.target_audience}
-**Category:** ${ideaData.category}
+**Problem Statement:** ${businessConcept.problem || `Addressing key challenges in the ${ideaData.category || 'technology'} space`}
 
-**Key Features to Implement:**
-${reportData?.product_strategy?.core_features?.slice(0, 5).map(feature => `- ${feature}`).join('\n') || '- User dashboard\n- Core functionality\n- User authentication\n- Basic settings'}
+**Solution Overview:** ${businessConcept.solution || ideaData.description}
+
+**Core Features to Implement:**
+${productStrategy.core_features ?
+  productStrategy.core_features.map((feature, index) => `${index + 1}. ${feature.name}: ${feature.description}`).join('\n') :
+  `1. User Authentication & Dashboard
+2. Core ${ideaData.category || 'Business'} Functionality
+3. Data Management & Analytics
+4. User Profile & Settings`}
+
+**Target Market:** ${marketIntelligence.target_market || `${ideaData.target_audience || 'Professionals'} looking for ${ideaData.category || 'technology'} solutions`}
+
+**Key Value Propositions:**
+${businessConcept.value_propositions ?
+  businessConcept.value_propositions.map((vp, index) => `• ${vp}`).join('\n') :
+  `• Streamlined ${ideaData.category || 'business'} processes
+• User-friendly interface
+• Scalable and reliable solution`}
 
 **Technical Requirements:**
-- Modern React/Next.js application
-- Responsive design for mobile and desktop
-- Clean, professional UI with good UX
-- Authentication system
-- Dashboard with key metrics
-- ${ideaData.category?.toLowerCase()} focused interface
+- Modern React/Next.js frontend
+- Responsive design (mobile-first)
+- Clean, professional UI/UX
+- Fast loading times
+- Accessibility compliance (WCAG 2.1)
+- SEO optimization
+
+**Pages/Screens to Create:**
+1. Landing Page - Hero section, features, pricing, testimonials
+2. Authentication - Sign up, sign in, password reset
+3. Dashboard - Main user interface with key metrics
+4. ${ideaData.category || 'Core'} Management - Primary functionality
+5. Profile/Settings - User account management
+6. Help/Support - Documentation and contact
 
 **Design Guidelines:**
-- Use a modern color scheme appropriate for ${ideaData.target_audience?.toLowerCase()}
-- Include proper loading states and error handling
-- Implement accessibility best practices
-- Create an intuitive navigation structure
+- Color Scheme: Modern, professional palette (suggest primary and secondary colors)
+- Typography: Clean, readable fonts (Inter, Roboto, or similar)
+- Layout: Card-based design with clear hierarchy
+- Components: Consistent button styles, form inputs, navigation
+- Responsive: Mobile (320px+), Tablet (768px+), Desktop (1024px+)
 
-Please create a fully functional MVP that demonstrates the core value proposition of this ${ideaData.category?.toLowerCase()} solution.`;
+**User Experience Flow:**
+1. User lands on homepage and understands value proposition
+2. User signs up/signs in seamlessly
+3. User completes onboarding process
+4. User accesses main functionality through intuitive dashboard
+5. User achieves their primary goal efficiently
+
+**Success Metrics to Display:**
+${goToMarket.success_metrics ?
+  goToMarket.success_metrics.map(metric => `• ${metric}`).join('\n') :
+  `• User engagement rate
+• Task completion rate
+• User satisfaction score`}
+
+**Additional Context:**
+- Industry: ${ideaData.category || 'Technology'}
+- Estimated Development Time: ${ideaData.difficulty === 'easy' ? '2-4 weeks' : ideaData.difficulty === 'hard' ? '8-12 weeks' : '4-8 weeks'}
+- Priority Features: Focus on core functionality first, then expand
+
+Please create a fully functional, production-ready MVP that demonstrates the core value proposition and provides an excellent user experience. Include proper error handling, loading states, and user feedback mechanisms.`;
 
     setMvpPrompt(prompt);
   };
@@ -210,90 +371,105 @@ Please create a fully functional MVP that demonstrates the core value propositio
     toast.success('MVP prompt copied to clipboard!');
   };
 
-  const generateMockReport = (idea) => {
-    return {
-      business_concept: {
-        elevator_pitch: `${idea.title} is an innovative solution that addresses the growing need for ${idea.category.toLowerCase()} solutions in today's market.`,
-        problem_statement: `Current solutions in the ${idea.category.toLowerCase()} space are fragmented and don't adequately serve the target market's needs.`,
-        solution_overview: idea.description,
-        value_proposition: `Our unique approach combines cutting-edge technology with user-centric design to deliver unprecedented value.`,
-        target_customers: idea.target_audience || 'Small to medium businesses and individual consumers'
-      },
-      market_intelligence: {
-        market_size: `The ${idea.category.toLowerCase()} market is valued at $2.5B and growing at 15% annually.`,
-        market_trends: [
-          'Increasing digital adoption',
-          'Growing demand for automation',
-          'Focus on user experience',
-          'Sustainability concerns'
-        ],
-        competitive_landscape: 'The market has several established players but lacks innovation in key areas.',
-        market_opportunity: 'Significant opportunity exists for disruptive solutions that address current pain points.'
-      },
-      product_strategy: {
-        core_features: [
-          'Intuitive user interface',
-          'Advanced analytics',
-          'Mobile-first design',
-          'Integration capabilities',
-          'Scalable architecture'
-        ],
-        development_roadmap: {
-          'Phase 1 (0-6 months)': 'MVP development and initial testing',
-          'Phase 2 (6-12 months)': 'Feature expansion and user acquisition',
-          'Phase 3 (12-18 months)': 'Scale and optimization'
+  const handleExportPDF = async () => {
+    if (!report || !idea) {
+      toast.error('No report data available for export');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      console.log('[PDF Export] Starting export process');
+
+      const response = await fetch('/api/export-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        technology_stack: 'Modern web technologies with cloud-native architecture'
-      },
-      go_to_market: {
-        marketing_strategy: 'Multi-channel approach focusing on digital marketing and strategic partnerships',
-        sales_channels: ['Direct sales', 'Online marketplace', 'Partner network'],
-        pricing_model: 'Freemium with premium tiers for advanced features',
-        launch_plan: 'Soft launch with beta users followed by public release'
-      },
-      financial_foundation: {
-        revenue_model: 'Subscription-based with transaction fees',
-        cost_structure: {
-          'Development': '40%',
-          'Marketing': '30%',
-          'Operations': '20%',
-          'Other': '10%'
-        },
-        funding_requirements: '$500K for initial 18 months',
-        financial_projections: {
-          'Year 1': '$100K revenue',
-          'Year 2': '$500K revenue',
-          'Year 3': '$1.5M revenue'
-        }
-      },
-      evaluation: {
-        strengths: [
-          'Strong market demand',
-          'Innovative approach',
-          'Scalable business model',
-          'Experienced team potential'
-        ],
-        risks: [
-          'Market competition',
-          'Technology challenges',
-          'Regulatory changes',
-          'Funding requirements'
-        ],
-        success_metrics: [
-          'User acquisition rate',
-          'Revenue growth',
-          'Customer satisfaction',
-          'Market share'
-        ],
-        recommendations: [
-          'Focus on MVP development',
-          'Build strategic partnerships',
-          'Invest in user research',
-          'Secure initial funding'
-        ]
+        body: JSON.stringify({
+          ideaId: params.id,
+          reportData: report.report_data,
+          ideaData: idea
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to export PDF');
       }
-    };
+
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${idea.title.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Report exported successfully!');
+    } catch (error) {
+      console.error('[PDF Export] Error:', error);
+      toast.error(`Failed to export PDF: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
   };
+
+  const handleShareReport = async () => {
+    if (!report || !idea) {
+      toast.error('No report data available for sharing');
+      return;
+    }
+
+    setSharing(true);
+    try {
+      console.log('[Share Report] Creating share link');
+
+      const response = await fetch('/api/share-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ideaId: params.id,
+          reportData: report.report_data,
+          ideaData: idea,
+          expiryDays: 30
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create share link');
+      }
+
+      if (result.success && result.shareUrl) {
+        // Copy share URL to clipboard
+        await navigator.clipboard.writeText(result.shareUrl);
+
+        const message = result.fallback ?
+          'Share link copied (temporary - database unavailable)' :
+          'Share link copied to clipboard!';
+
+        toast.success(message);
+
+        console.log('[Share Report] Share link created:', result.shareUrl);
+      } else {
+        throw new Error('Invalid share response');
+      }
+    } catch (error) {
+      console.error('[Share Report] Error:', error);
+      toast.error(`Failed to create share link: ${error.message}`);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+
 
   const availableCredits = credits ? credits.total_credits - credits.used_credits : 0;
   const canAccessPremium = report && report.id;
@@ -360,13 +536,39 @@ Please create a fully functional MVP that demonstrates the core value propositio
             </div>
             
             <div className="flex gap-3">
-              <Button variant="outline">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+              <Button
+                variant="outline"
+                onClick={handleShareReport}
+                disabled={!report || sharing}
+              >
+                {sharing ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4 mr-2" />
+                    Creating Link...
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </>
+                )}
               </Button>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
+              <Button
+                variant="outline"
+                onClick={handleExportPDF}
+                disabled={!report || exporting}
+              >
+                {exporting ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4 mr-2" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </>
+                )}
               </Button>
               {!report && (
                 <Button 
@@ -465,7 +667,17 @@ Please create a fully functional MVP that demonstrates the core value propositio
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 relative">
+            {generating && !report?.report_data ? (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <DynamicLoader
+                  type="report"
+                  estimatedTime={40}
+                  className="max-w-md"
+                />
+              </div>
+            ) : null}
+
             <ReportSection
               section={reportSections.find(s => s.id === activeSection)}
               report={report}

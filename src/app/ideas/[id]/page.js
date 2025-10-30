@@ -26,6 +26,7 @@ import {
   BookmarkCheck
 } from 'lucide-react';
 import { getDifficultyVariant, getCategoryVariant } from '@/lib/badgeUtils';
+import { getUserIdeaById } from '@/lib/userService';
 
 export default function IdeaDetailsPage() {
   const { isSignedIn, user } = useUser();
@@ -54,20 +55,29 @@ export default function IdeaDetailsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/ideas/${params.id}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch idea');
+      // Try client-side service first (uses DB, then cache fallback)
+      const ideaData = await getUserIdeaById(user.id, params.id);
+      if (ideaData) {
+        setIdea(ideaData);
+        setIsBookmarked(false);
+        return;
       }
 
-      setIdea(data.idea);
-      // Check if idea is bookmarked (you can implement this logic)
-      setIsBookmarked(false);
-      
+      // Final fallback: localStorage cache written by generate page
+      try {
+        const localCache = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+        const cached = localCache[String(params.id)];
+        if (cached) {
+          setIdea(cached);
+          setIsBookmarked(false);
+          return;
+        }
+      } catch (_) {}
+
+      throw new Error('Idea not found');
     } catch (err) {
       console.error('Error fetching idea:', err);
-      setError(err.message);
+      setError(err.message || 'Failed to fetch idea');
     } finally {
       setLoading(false);
     }

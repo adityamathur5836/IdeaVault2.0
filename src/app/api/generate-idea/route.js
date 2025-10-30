@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { searchSimilarIdeas, searchByCategory, getRandomIdeas } from '@/lib/vectorSearch';
 import { synthesizeIdeasWithGemini, generateSearchQuery } from '@/lib/geminiService';
+import { saveUserIdea } from '@/lib/userService';
 
 export async function POST(request) {
   try {
@@ -69,9 +70,37 @@ export async function POST(request) {
       const allIdeas = [...synthesizedIdeas, ...ideas];
       const finalIdeas = removeDuplicates(allIdeas);
 
+      // Save ideas to database for later retrieval
+      const ideasToReturn = finalIdeas.slice(0, count);
+      const savedIdeas = [];
+      
+      for (const idea of ideasToReturn) {
+        // Ensure idea has a proper ID first
+        const ideaWithId = {
+          ...idea,
+          id: idea.id || Math.floor(Math.random() * 1000000),
+          user_id: userId,
+          generated: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        try {
+          const savedIdea = await saveUserIdea(userId, {
+            ...ideaWithId,
+            source_input: JSON.stringify(data)
+          });
+          savedIdeas.push(savedIdea);
+        } catch (error) {
+          console.warn('Failed to save idea to database, using in-memory version:', error);
+          // If saving fails, use the idea with generated ID
+          savedIdeas.push(ideaWithId);
+        }
+      }
+
       if (multiple) {
         return NextResponse.json({
-          ideas: finalIdeas.slice(0, count),
+          ideas: savedIdeas,
           total: finalIdeas.length,
           source: 'hybrid_vector_gemini',
           ai_generated: synthesizedIdeas.length,
@@ -79,7 +108,7 @@ export async function POST(request) {
           model: 'gemini-1.5-flash'
         });
       } else {
-        return NextResponse.json(finalIdeas[0] || generateFallbackIdea(data));
+        return NextResponse.json(savedIdeas[0] || generateFallbackIdea(data));
       }
 
     } else if (type === 'freeform') {
@@ -117,9 +146,37 @@ export async function POST(request) {
       const allIdeas = [...synthesizedIdeas, ...ideas];
       const finalIdeas = removeDuplicates(allIdeas);
 
+      // Save ideas to database for later retrieval
+      const ideasToReturn = finalIdeas.slice(0, count);
+      const savedIdeas = [];
+      
+      for (const idea of ideasToReturn) {
+        // Ensure idea has a proper ID first
+        const ideaWithId = {
+          ...idea,
+          id: idea.id || Math.floor(Math.random() * 1000000),
+          user_id: userId,
+          generated: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        try {
+          const savedIdea = await saveUserIdea(userId, {
+            ...ideaWithId,
+            source_input: prompt
+          });
+          savedIdeas.push(savedIdea);
+        } catch (error) {
+          console.warn('Failed to save idea to database, using in-memory version:', error);
+          // If saving fails, use the idea with generated ID
+          savedIdeas.push(ideaWithId);
+        }
+      }
+
       if (multiple) {
         return NextResponse.json({
-          ideas: finalIdeas.slice(0, count),
+          ideas: savedIdeas,
           total: finalIdeas.length,
           source: 'hybrid_vector_gemini',
           prompt: prompt,
@@ -128,7 +185,7 @@ export async function POST(request) {
           model: 'gemini-1.5-flash'
         });
       } else {
-        return NextResponse.json(finalIdeas[0] || generateFallbackIdeaFromPrompt(prompt));
+        return NextResponse.json(savedIdeas[0] || generateFallbackIdeaFromPrompt(prompt));
       }
 
     } else {

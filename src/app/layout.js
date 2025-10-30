@@ -3,6 +3,7 @@ import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs';
 import { ToastProvider } from '@/components/ui/Toast';
 import { DashboardProvider } from '@/contexts/DashboardContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { validateEnvironment } from '@/lib/envValidator';
 import AppErrorBoundary from '@/components/ui/AppErrorBoundary';
 
@@ -45,13 +46,15 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en" className={inter.variable}>
-        <body className="font-sans antialiased bg-slate-50">
+        <body className="font-sans antialiased bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
           <AppErrorBoundary>
-            <DashboardProvider>
-              <ToastProvider>
-                {children}
-              </ToastProvider>
-            </DashboardProvider>
+            <ThemeProvider>
+              <DashboardProvider>
+                <ToastProvider>
+                  {children}
+                </ToastProvider>
+              </DashboardProvider>
+            </ThemeProvider>
           </AppErrorBoundary>
         </body>
       </html>

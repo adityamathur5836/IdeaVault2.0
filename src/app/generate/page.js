@@ -15,7 +15,7 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/layout/Navigation';
@@ -26,6 +26,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { DynamicLoader } from '@/components/ui/DynamicLoader';
 import { useToast } from '@/components/ui/Toast';
 import { useIdeaActions } from '@/hooks/useIdeaActions';
 import IdeaCard from '@/components/IdeaCard';
@@ -99,6 +100,33 @@ export default function GeneratePage() {
   
   // Freeform state
   const [prompt, setPrompt] = useState('');
+
+  // Restore persisted state on mount
+  useEffect(() => {
+    try {
+      const persisted = JSON.parse(localStorage.getItem('generate_form_state') || '{}');
+      if (persisted.mode) setMode(persisted.mode);
+      if (persisted.formData) setFormData(prev => ({ ...prev, ...persisted.formData }));
+      if (persisted.prompt) setPrompt(persisted.prompt);
+      if (persisted.numberOfIdeas) setNumberOfIdeas(persisted.numberOfIdeas);
+      const cachedIdeas = JSON.parse(localStorage.getItem('generate_latest_ideas') || '[]');
+      if (Array.isArray(cachedIdeas) && cachedIdeas.length > 0) setGeneratedIdeas(cachedIdeas);
+    } catch (e) {
+      console.warn('Failed to restore generate form state:', e);
+    }
+  }, []);
+
+  // Persist state whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('generate_form_state', JSON.stringify({
+        mode,
+        formData,
+        prompt,
+        numberOfIdeas,
+      }));
+    } catch (_) {}
+  }, [mode, formData, prompt, numberOfIdeas]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -177,6 +205,24 @@ export default function GeneratePage() {
 
       if (result.ideas && result.ideas.length > 0) {
         setGeneratedIdeas(result.ideas);
+        try {
+          localStorage.setItem('generate_latest_ideas', JSON.stringify(result.ideas));
+        } catch (_) {}
+        try {
+          // Cache generated ideas locally for detail/report pages when DB isn't available
+          const cacheObject = Object.fromEntries(
+            result.ideas
+              .filter(i => i && (i.id !== undefined && i.id !== null))
+              .map(i => [String(i.id), i])
+          );
+          const existing = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+          localStorage.setItem(
+            'generated_ideas_cache',
+            JSON.stringify({ ...existing, ...cacheObject })
+          );
+        } catch (e) {
+          console.warn('Failed to cache generated ideas locally:', e);
+        }
         toast.success(`${result.ideas.length} ideas generated successfully!`);
       } else {
         throw new Error('No ideas were generated. Please try again with different parameters.');
@@ -294,7 +340,7 @@ export default function GeneratePage() {
                 {mode === 'structured' ? (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block text-sm font-medium text-black mb-2">
                         Category *
                       </label>
                       <Select
@@ -447,19 +493,13 @@ export default function GeneratePage() {
             )}
 
             {loading ? (
-              <Card variant="elevated">
-                <CardContent className="py-12">
-                  <div className="text-center">
-                    <LoadingSpinner size="xl" />
-                    <p className="mt-4 text-slate-600 font-medium">
-                      Generating {numberOfIdeas} personalized business ideas...
-                    </p>
-                    <p className="text-sm text-slate-500 mt-2">
-                      This may take a few moments
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex justify-center">
+                <DynamicLoader
+                  type="idea"
+                  estimatedTime={numberOfIdeas * 8} // 8 seconds per idea
+                  className="max-w-lg"
+                />
+              </div>
             ) : !error && (
               <Card variant="gradient">
                 <CardContent className="py-16">
@@ -524,7 +564,7 @@ export default function GeneratePage() {
                   Uses full width container (max-w-7xl) for optimal space utilization
                   Gap increases on larger screens for better visual separation
                 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
                   {generatedIdeas.map((idea, index) => (
                     <div
                       key={idea.id || index}

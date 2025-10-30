@@ -40,11 +40,67 @@ class AppErrorBoundary extends React.Component {
       console.error('App Error Boundary caught an error:', error, errorInfo);
     }
 
-    // In production, you might want to send this to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Example: Sentry.captureException(error, { extra: errorInfo });
+    // Log error to system logs
+    this.logErrorToSystem(error, errorInfo);
+
+    // Auto-retry for certain types of errors
+    if (this.shouldAutoRetry(error)) {
+      this.scheduleAutoRetry();
     }
   }
+
+  shouldAutoRetry(error) {
+    const retryableErrors = [
+      'ChunkLoadError',
+      'Loading chunk',
+      'Network Error',
+      'Failed to fetch'
+    ];
+
+    return retryableErrors.some(errorType =>
+      error.message?.includes(errorType) || error.name?.includes(errorType)
+    ) && this.state.retryCount < 2; // Limit auto-retries
+  }
+
+  scheduleAutoRetry = () => {
+    console.log(`[Error Boundary] Scheduling auto-retry in ${2000 + (this.state.retryCount * 1000)}ms`);
+
+    setTimeout(() => {
+      if (this.state.hasError) {
+        console.log('[Error Boundary] Executing auto-retry');
+        this.handleRetry();
+      }
+    }, 2000 + (this.state.retryCount * 1000)); // Exponential backoff
+  };
+
+  logErrorToSystem = async (error, errorInfo) => {
+    try {
+      await fetch('/api/system-logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          operation: 'error_boundary',
+          status: 'error',
+          message: error.message,
+          error_details: {
+            name: error.name,
+            stack: error.stack,
+            componentStack: errorInfo.componentStack
+          },
+          metadata: {
+            userAgent: navigator.userAgent,
+            url: window.location.href,
+            retryCount: this.state.retryCount,
+            errorType: this.getErrorType()
+          }
+        }),
+      });
+    } catch (logError) {
+      console.error('[Error Boundary] Failed to log error:', logError);
+    }
+  };
 
   handleRetry = () => {
     this.setState(prevState => ({

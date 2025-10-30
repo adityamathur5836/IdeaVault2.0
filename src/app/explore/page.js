@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import Navigation from '@/components/layout/Navigation';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
@@ -50,6 +51,7 @@ const difficulties = [
 export default function ExplorePage() {
   const { isSignedIn, user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -332,7 +334,7 @@ export default function ExplorePage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`/explore/${idea.id}`, '_blank')}
+                          onClick={() => router.push(`/ideas/${idea.id}`)}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>

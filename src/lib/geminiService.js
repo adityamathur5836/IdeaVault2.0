@@ -3,6 +3,138 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Initialize Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
+// Performance optimization: Cache for embeddings and reports
+const embeddingCache = new Map();
+const reportCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+// Request timeout configuration
+const REQUEST_TIMEOUT = 20000; // 20 seconds
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+// Quota tracking
+let quotaUsage = {
+  embeddings: 0,
+  reports: 0,
+  lastReset: Date.now()
+};
+
+/**
+ * Create a timeout promise for API calls
+ */
+function createTimeoutPromise(timeout) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), timeout);
+  });
+}
+
+/**
+ * Retry wrapper for API calls with exponential backoff
+ */
+async function withRetry(fn, attempts = RETRY_ATTEMPTS) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === attempts - 1) throw error;
+      console.warn(`Retry attempt ${i + 1}/${attempts} failed:`, error.message);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, i)));
+    }
+  }
+}
+// Ensure no undefined/null/empty strings leak into UI
+function sanitizeReport(report) {
+  const clean = (value) => {
+    if (value === null || value === undefined) return '';
+    if (Array.isArray(value)) return value.filter(v => v && String(v).trim() !== '');
+    if (typeof value === 'object') {
+      const out = {};
+      for (const k of Object.keys(value)) out[k] = clean(value[k]);
+      return out;
+    }
+    // Use RegExp constructor to avoid parser issues with escaped slashes
+    const placeholderPattern = new RegExp('undefined|N/A|TBD', 'gi');
+    return String(value).replace(placeholderPattern, '').trim();
+  };
+
+  const sanitized = clean(report);
+  if (!Array.isArray(sanitized?.market_intelligence?.key_players) || sanitized.market_intelligence.key_players.length === 0) {
+    // Keep field but empty array to avoid 'undefined'
+    if (!sanitized.market_intelligence) sanitized.market_intelligence = {};
+    sanitized.market_intelligence.key_players = [];
+    // If there are no key players, ensure competitive_landscape explicitly communicates this and provides a viability note
+    const strengthsCount = Array.isArray(sanitized?.evaluation?.strengths) ? sanitized.evaluation.strengths.length : 0;
+    const risksCount = Array.isArray(sanitized?.evaluation?.risks) ? sanitized.evaluation.risks.length : 0;
+    const viability = strengthsCount > risksCount ? 'seems viable if executed well' : 'has uncertain viability and would require careful validation';
+    const topRisk = Array.isArray(sanitized?.evaluation?.risks) && sanitized.evaluation.risks[0] ? ` Key risk: ${sanitized.evaluation.risks[0]}.` : '';
+    const topStrength = Array.isArray(sanitized?.evaluation?.strengths) && sanitized.evaluation.strengths[0] ? ` Advantage: ${sanitized.evaluation.strengths[0]}.` : '';
+    sanitized.market_intelligence.competitive_landscape = `There are no companies currently doing this exact thing. Based on the analysis, the idea ${viability}.${topStrength}${topRisk}`.trim();
+  }
+  return sanitized;
+}
+
+/**
+ * Check and update quota usage
+ */
+function updateQuotaUsage(type) {
+  const now = Date.now();
+  // Reset quota every hour
+  if (now - quotaUsage.lastReset > 60 * 60 * 1000) {
+    quotaUsage = { embeddings: 0, reports: 0, lastReset: now };
+  }
+  quotaUsage[type]++;
+}
+
+/**
+ * Find real competitors using a focused Gemini query
+ * @param {Object} idea
+ * @returns {Promise<string[]>}
+ */
+async function fetchCompetitorsWithGemini(idea) {
+  const model = genAI.getGenerativeModel({ 
+    model: 'gemini-1.5-flash',
+    generationConfig: { temperature: 0.3, topK: 40, topP: 0.9, maxOutputTokens: 1024 }
+  });
+
+  const competitorPrompt = `List 5-10 real companies, products, or organizations that operate in the same niche or solve the same or closely related problem as the following business.
+
+Business: ${idea.title}
+Description: ${idea.description}
+Category: ${idea.category}
+Target audience: ${idea.target_audience}
+
+Rules:
+- Return ONLY a JSON array of strings where each string is the company/product name (e.g., ["Company A", "Product B"]).
+- Use only real names. Do not invent placeholders. If there are truly no direct competitors, return an empty JSON array [] but prefer adjacent or substitute solutions when reasonable.`;
+
+  const result = await withRetry(async () => {
+    return await Promise.race([
+      model.generateContent(competitorPrompt),
+      createTimeoutPromise(REQUEST_TIMEOUT)
+    ]);
+  });
+
+  const text = result?.response?.text?.() || '';
+  try {
+    const match = text.match(/\[[\s\S]*\]/);
+    const json = match ? match[0] : text;
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()) : [];
+  } catch (_) {
+    console.warn('Failed to parse competitors JSON, raw:', text?.slice(0, 200));
+    return [];
+  }
+}
+
+/**
+ * Check if quota is exceeded
+ */
+function isQuotaExceeded(type) {
+  const limits = { embeddings: 1000, reports: 100 }; // Per hour limits
+  return quotaUsage[type] >= limits[type];
+}
+
 /**
  * Generate embeddings using Gemini's embedding model
  * @param {string} text - The text to generate embeddings for
@@ -15,16 +147,47 @@ export async function generateGeminiEmbedding(text) {
       throw new Error('Gemini API key not configured');
     }
 
+    // Check quota
+    if (isQuotaExceeded('embeddings')) {
+      console.warn('Embedding quota exceeded, using fallback');
+      throw new Error('Quota exceeded');
+    }
+
+    // Check cache first
+    const cacheKey = `embedding_${text.substring(0, 100)}`;
+    const cached = embeddingCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log('Using cached embedding');
+      return cached.data;
+    }
+
     // Use Gemini's embedding model
     const model = genAI.getGenerativeModel({ model: 'embedding-001' });
-    
-    const result = await model.embedContent(text);
-    
+
+    // Use timeout and retry mechanism
+    const result = await withRetry(async () => {
+      return await Promise.race([
+        model.embedContent(text),
+        createTimeoutPromise(REQUEST_TIMEOUT)
+      ]);
+    });
+
     if (!result.embedding || !result.embedding.values) {
       throw new Error('Invalid embedding response from Gemini');
     }
-    
-    return result.embedding.values;
+
+    const embedding = result.embedding.values;
+
+    // Cache the result
+    embeddingCache.set(cacheKey, {
+      data: embedding,
+      timestamp: Date.now()
+    });
+
+    // Update quota
+    updateQuotaUsage('embeddings');
+
+    return embedding;
   } catch (error) {
     console.error('Error generating Gemini embedding:', error);
     throw new Error(`Failed to generate embedding: ${error.message}`);
@@ -38,7 +201,9 @@ export async function generateGeminiEmbedding(text) {
  */
 export function generateSearchQuery(data) {
   if (data.type === 'freeform' && data.prompt) {
-    return data.prompt;
+    // Emphasize industry/domain keywords and de-emphasize generic phrasing
+    const base = data.prompt.trim();
+    return `${base}. Focus industry/domain extraction and generate ideas ONLY within that domain.`;
   }
   
   // Build query from structured data
@@ -68,36 +233,42 @@ export async function synthesizeIdeasWithGemini(matchedIdeas, userInput, count =
       return [];
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 4096,
+      }
+    });
 
     // Prepare context from matched ideas
     const ideaContext = matchedIdeas.slice(0, 5).map(idea => 
       `- ${idea.title}: ${idea.description}`
     ).join('\n');
 
-    const prompt = `Based on the user's request: "${userInput}"
+    const prompt = `Generate ${count} innovative business ideas for: "${userInput}"
 
-Here are some related existing business ideas from our database:
-${ideaContext}
+Context: ${ideaContext}
 
-Generate ${count} completely new, innovative business ideas that:
-1. Are inspired by but distinctly different from the existing ideas
-2. Directly address the user's specific needs and requirements
-3. Are practical, implementable, and have clear market potential
-4. Offer unique value propositions and competitive advantages
-5. Consider current market trends and technological possibilities
+Requirements:
+- Practical, implementable ideas with clear market potential
+- Unique value propositions and competitive advantages
+- Consider current trends and technology
+- Ideas MUST be relevant to the user's described industry/domain. Reject unrelated industries.
 
-For each idea, provide a JSON object with these exact fields:
-- title: A compelling, concise business name/concept (max 60 characters)
-- description: A clear 2-3 sentence explanation of the concept and its value proposition
-- category: One of [Technology, Healthcare, Finance, Education, E-commerce, Food & Drink, Travel, Entertainment, Productivity, Social, Gaming, Sports, News, Business, Marketing, Design]
-- target_audience: Specific user group (e.g., "Small Business Owners", "Remote Workers", "College Students")
-- difficulty: One of [easy, medium, hard] based on implementation complexity
-- key_innovation: What makes this idea unique and different (1 sentence)
-- tags: Array of 3-5 relevant keywords
-- market_potential: Brief assessment of market size and opportunity
+Format each idea as JSON object with:
+- title: Business name/concept (max 60 chars)
+- description: 2-3 sentence value proposition
+- category: [Technology, Healthcare, Finance, Education, E-commerce, Food & Drink, Travel, Entertainment, Productivity, Social, Gaming, Sports, News, Business, Marketing, Design]
+- target_audience: Specific user group
+- difficulty: [easy, medium, hard]
+- key_innovation: What makes it unique (1 sentence)
+- tags: Array of 3-5 keywords
+- market_potential: Brief market assessment
 
-Return ONLY a valid JSON array of ${count} business idea objects, no additional text or formatting.`;
+Return ONLY valid JSON array of ${count} objects.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response.text();
@@ -210,59 +381,101 @@ export async function generateIdeaReportWithGemini(idea) {
       throw new Error('Gemini API key not configured');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        temperature: 0.6,
+        topK: 40,
+        topP: 0.9,
+        maxOutputTokens: 8192,
+      }
+    });
 
-    const prompt = `Create a comprehensive, professional business analysis report for this business idea:
+    const prompt = `Create a business analysis report for: ${idea.title}
 
-Title: ${idea.title}
 Description: ${idea.description}
 Category: ${idea.category}
 Target Audience: ${idea.target_audience}
 Difficulty: ${idea.difficulty}
 
-Generate a detailed, actionable business report with the following sections. Return the response as a JSON object with these exact section keys:
+Return JSON object with these sections:
 
 {
   "business_concept": {
-    "elevator_pitch": "2-3 paragraph elevator pitch that clearly explains the business idea",
-    "problem_statement": "Clear description of the problem this business solves",
-    "solution_overview": "Detailed overview of how the solution addresses the problem",
-    "value_proposition": "Clear value proposition statement",
-    "target_customers": "Description of the target customer segments"
+    "elevator_pitch": "2-3 paragraph pitch explaining the business",
+    "problem_statement": "Problem this business solves",
+    "solution_overview": "How solution addresses the problem",
+    "value_proposition": "Clear value proposition",
+    "target_customers": "Target customer segments"
   },
   "market_intelligence": {
-    "market_size": "Total addressable market analysis with specific numbers",
-    "market_trends": ["Current market trend 1", "Current market trend 2", "Current market trend 3"],
-    "competitive_landscape": "Analysis of existing competitors and market positioning",
-    "market_opportunity": "Specific market opportunities and growth potential"
+    "market_size": "Global and/or regional market size figures with source context",
+    "market_trends": ["3-6 current quantified market trends"],
+    "competitive_landscape": "Summary of competitive dynamics and positioning",
+    "key_players": ["List at least 5 named competitors or products in this specific niche"],
+    "market_opportunity": "Specific quantified opportunities (segments, geos, ICPs)"
   },
   "product_strategy": {
-    "core_features": ["Essential feature 1", "Essential feature 2", "Essential feature 3"],
-    "development_roadmap": "Detailed development timeline and phases",
-    "technology_requirements": "Technical requirements and technology stack",
-    "mvp_scope": "Minimum viable product scope and features"
+    "core_features": ["Feature 1", "Feature 2", "Feature 3"],
+    "development_roadmap": "Development timeline",
+    "technology_requirements": "Tech stack requirements",
+    "mvp_scope": "MVP features"
   },
   "go_to_market": {
-    "target_audience": "Detailed target audience analysis",
-    "marketing_strategy": "Comprehensive marketing approach and channels",
-    "pricing_model": "Pricing strategy and revenue model",
-    "launch_plan": "6-month launch timeline with specific milestones"
+    "target_audience": "Target audience analysis",
+    "marketing_strategy": "Marketing approach",
+    "pricing_model": "Pricing strategy",
+    "launch_plan": "6-month launch timeline"
   },
   "financial_foundation": {
-    "startup_costs": "Detailed breakdown of initial investment requirements",
-    "revenue_projections": "Revenue projections for first 3 years with assumptions",
-    "cost_structure": "Ongoing operational costs and expense breakdown",
-    "funding_strategy": "Funding requirements and potential sources"
+    "startup_costs": "Initial investment breakdown",
+    "revenue_projections": "3-year revenue projections",
+    "cost_structure": "Operational costs",
+    "funding_strategy": "Funding requirements"
   },
   "evaluation": {
-    "strengths": ["Key strength 1", "Key strength 2", "Key strength 3"],
-    "risks": ["Major risk 1", "Major risk 2", "Major risk 3"],
-    "success_metrics": ["Success metric 1", "Success metric 2", "Success metric 3"],
-    "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
+    "strengths": ["Strength 1", "Strength 2", "Strength 3"],
+    "risks": ["Risk 1", "Risk 2", "Risk 3"],
+    "success_metrics": ["Metric 1", "Metric 2", "Metric 3"],
+    "recommendations": ["Rec 1", "Rec 2", "Rec 3"]
+  },
+  "visualizations": {
+    "three_d_models": {
+      "market_positioning_scatter": {
+        "description": "3D scatter of competitors vs idea (Market Share %, Growth Rate %, Differentiation score)",
+        "axes": ["market_share", "growth_rate", "differentiation"],
+        "points": [
+          { "name": "Idea", "market_share": 0.0, "growth_rate": 0.0, "differentiation": 0.0 },
+          { "name": "Competitor A", "market_share": 0.0, "growth_rate": 0.0, "differentiation": 0.0 }
+        ]
+      },
+      "efficiency_potential_surface": {
+        "description": "Grid for efficiency vs potential across market maturity (z as potential)",
+        "axes": ["efficiency", "market_maturity", "potential"],
+        "grid": {
+          "x": [0.2, 0.4, 0.6, 0.8, 1.0],
+          "y": [0.2, 0.4, 0.6, 0.8, 1.0],
+          "z": [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0]
+          ]
+        }
+      }
+    }
   }
 }
 
-Make the analysis specific to this business idea, not generic. Include realistic numbers, timelines, and actionable insights. Return ONLY the JSON object, no additional text.`;
+Important rules:
+- Use only real-world data and company names. Do not invent placeholder text like "Competitor 1" or "undefined".
+- If data is uncertain, provide the best widely-cited estimate and clearly note assumptions.
+- key_players MUST be an array of 5-10 real named competitors; omit only if truly none exist for niche.
+- Ensure every field is non-empty and human-readable. Avoid "N/A", "TBD", "undefined".
+- If there are truly no direct competitors in this niche, set market_intelligence.key_players to an empty array [], and set market_intelligence.competitive_landscape to a simple, plain-English sentence stating there are no companies doing this, followed by a brief viability assessment (whether the idea or something similar could work and why/why not).
+ - Populate visualizations.three_d_models with realistic, non-zero values derived from known market data and your analysis; when using estimates, note assumptions in comments within descriptions.
+Return ONLY the JSON object.`;
 
     console.log('Calling Gemini API for report generation...');
     const result = await model.generateContent(prompt);
@@ -280,7 +493,46 @@ Make the analysis specific to this business idea, not generic. Include realistic
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       const jsonString = jsonMatch ? jsonMatch[0] : response;
 
-      const reportData = JSON.parse(jsonString);
+      // Parse raw first, enrich, then sanitize
+      let reportDataRaw = JSON.parse(jsonString);
+
+      // If no competitors were returned, try a dedicated competitor discovery step
+      const players = reportDataRaw?.market_intelligence?.key_players;
+      if (!Array.isArray(players) || players.length === 0) {
+        try {
+          const discovered = await fetchCompetitorsWithGemini(idea);
+          if (Array.isArray(discovered) && discovered.length > 0) {
+            if (!reportDataRaw.market_intelligence) reportDataRaw.market_intelligence = {};
+            reportDataRaw.market_intelligence.key_players = discovered;
+            const list = discovered.slice(0, 3).join(', ');
+            const base = reportDataRaw.market_intelligence.competitive_landscape || '';
+            reportDataRaw.market_intelligence.competitive_landscape = base && base.includes('no companies')
+              ? `Key players include ${list} and others.`
+              : (base || `Key players include ${list} and others.`);
+          }
+        } catch (e) {
+          console.warn('Competitor discovery fallback failed:', e?.message);
+        }
+      }
+
+      // Ensure visualizations scaffold exists if missing
+      if (!reportDataRaw.visualizations || !reportDataRaw.visualizations.three_d_models) {
+        reportDataRaw.visualizations = reportDataRaw.visualizations || {};
+        reportDataRaw.visualizations.three_d_models = reportDataRaw.visualizations.three_d_models || {
+          market_positioning_scatter: {
+            description: '3D scatter of competitors vs idea (Market Share %, Growth Rate %, Differentiation score)',
+            axes: ['market_share', 'growth_rate', 'differentiation'],
+            points: []
+          },
+          efficiency_potential_surface: {
+            description: 'Grid for efficiency vs potential across market maturity (z as potential)',
+            axes: ['efficiency', 'market_maturity', 'potential'],
+            grid: { x: [0.2,0.4,0.6,0.8,1.0], y: [0.2,0.4,0.6,0.8,1.0], z: [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]] }
+          }
+        };
+      }
+
+      const reportData = sanitizeReport(reportDataRaw);
 
       // Generate MVP prompt for Lovable/Bolt
       const mvpPrompt = await generateMVPPrompt(idea, reportData);
@@ -298,7 +550,7 @@ Make the analysis specific to this business idea, not generic. Include realistic
       console.log('Raw response:', response);
 
       // Return a structured fallback report with MVP prompt
-      const fallbackReport = generateFallbackReport(idea, response);
+      const fallbackReport = sanitizeReport(generateFallbackReport(idea, response));
       const mvpPrompt = generateFallbackMVPPrompt(idea);
       return {
         ...fallbackReport,
@@ -386,7 +638,17 @@ function generateFallbackReport(idea, rawResponse) {
 
       market_trends: categoryInsights.marketTrends,
 
-      competitive_landscape: `The ${idea.category.toLowerCase()} space features ${categoryInsights.competitorTypes} ranging from ${categoryInsights.establishedPlayers} to ${categoryInsights.emergingCompetitors}. Key players include ${categoryInsights.majorCompetitors}, each with ${categoryInsights.competitorWeaknesses}. Market consolidation trends show ${categoryInsights.consolidationTrends}, creating opportunities for ${categoryInsights.disruptionOpportunity}.`,
+      competitive_landscape: (() => {
+        const players = Array.isArray(categoryInsights.majorCompetitorsList) ? categoryInsights.majorCompetitorsList : [];
+        if (players.length === 0) {
+          const strengthsCount = Array.isArray(categoryInsights.strengths) ? categoryInsights.strengths.length : 0;
+          const risksCount = Array.isArray(categoryInsights.risks) ? categoryInsights.risks.length : 0;
+          const viability = strengthsCount > risksCount ? 'seems viable if executed well' : 'has uncertain viability and would require careful validation';
+          return `There are no companies currently doing this exact thing. Based on the analysis, the idea ${viability}.`;
+        }
+        return `The ${idea.category.toLowerCase()} space features ${categoryInsights.competitorTypes} ranging from ${categoryInsights.establishedPlayers} to ${categoryInsights.emergingCompetitors}.`;
+      })(),
+      key_players: Array.isArray(categoryInsights.majorCompetitorsList) ? categoryInsights.majorCompetitorsList : [],
 
       market_opportunity: `Significant whitespace exists in ${categoryInsights.opportunityArea} where current solutions ${categoryInsights.marketGap}. The convergence of ${categoryInsights.convergenceTrends} creates a perfect storm for innovation. Early movers in this space can capture ${categoryInsights.firstMoverAdvantage} before larger competitors respond. Total addressable market for our specific approach is estimated at ${categoryInsights.tamEstimate}.`
     },

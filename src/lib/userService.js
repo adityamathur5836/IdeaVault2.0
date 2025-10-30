@@ -1,5 +1,9 @@
 import { supabaseUser, supabaseUserServer } from './supabase';
 
+// In-memory storage for when database is not available
+const ideaCache = new Map();
+const userIdeasCache = new Map();
+
 // Save user idea to database
 export async function saveUserIdea(userId, ideaData) {
   try {
@@ -45,12 +49,19 @@ export async function saveUserIdea(userId, ideaData) {
       throw new Error('Failed to save idea');
     }
 
+    // Also store in cache
+    ideaCache.set(data.id, data);
+    if (!userIdeasCache.has(userId)) {
+      userIdeasCache.set(userId, []);
+    }
+    userIdeasCache.get(userId).push(data);
+    
     return data;
   } catch (error) {
     console.error('Save user idea error:', error);
-    // Return mock data if database is not set up
-    return {
-      id: Math.floor(Math.random() * 1000000),
+    // Create idea with proper ID and store in cache
+    const idea = {
+      id: ideaData.id || Math.floor(Math.random() * 1000000),
       user_id: userId,
       title: ideaData.title,
       description: ideaData.description,
@@ -64,6 +75,15 @@ export async function saveUserIdea(userId, ideaData) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    
+    // Store in cache
+    ideaCache.set(idea.id, idea);
+    if (!userIdeasCache.has(userId)) {
+      userIdeasCache.set(userId, []);
+    }
+    userIdeasCache.get(userId).push(idea);
+    
+    return idea;
   }
 }
 
@@ -78,6 +98,12 @@ export async function getUserIdeas(userId, limit = 50, offset = 0) {
       .range(offset, offset + limit - 1);
 
     if (error) {
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_ideas table not found, checking cache');
+        const cachedIdeas = userIdeasCache.get(userId) || [];
+        return cachedIdeas.slice(offset, offset + limit);
+      }
       console.error('Error fetching user ideas:', error);
       throw new Error('Failed to fetch user ideas');
     }
@@ -85,7 +111,9 @@ export async function getUserIdeas(userId, limit = 50, offset = 0) {
     return data || [];
   } catch (error) {
     console.error('Get user ideas error:', error);
-    throw error;
+    // Check cache as fallback
+    const cachedIdeas = userIdeasCache.get(userId) || [];
+    return cachedIdeas.slice(offset, offset + limit);
   }
 }
 
@@ -350,15 +378,44 @@ export async function getUserPreferences(userId) {
       .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // Not found error
-      console.error('Error fetching user preferences:', error);
-      throw new Error('Failed to fetch preferences');
+    if (error) {
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_preferences table not found, returning default preferences');
+        return {
+          user_id: userId,
+          theme: 'light',
+          notifications: true,
+          language: 'en',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+      }
+      if (error.code !== 'PGRST116') { // Not found error
+        console.error('Error fetching user preferences:', error);
+        throw new Error('Failed to fetch preferences');
+      }
     }
 
-    return data;
+    return data || {
+      user_id: userId,
+      theme: 'light',
+      notifications: true,
+      language: 'en',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Get user preferences error:', error);
-    throw error;
+    // Return default preferences instead of throwing error
+    return {
+      user_id: userId,
+      theme: 'light',
+      notifications: true,
+      language: 'en',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   }
 }
 
@@ -424,21 +481,12 @@ export async function getUserIdeaById(userId, ideaId) {
     if (error) {
       // Check if it's a table not found error (PGRST205)
       if (error.code === 'PGRST205') {
-        console.warn('user_ideas table not found, creating mock idea');
-        return {
-          id: ideaId,
-          user_id: userId,
-          title: 'Sample Business Idea',
-          description: 'This is a sample business idea for demonstration purposes.',
-          category: 'Technology',
-          difficulty: 'medium',
-          target_audience: 'Consumers',
-          budget_range: '$1,000 - $10,000',
-          timeframe: '3-6 months',
-          interests_skills: 'Technology, Innovation',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
+        console.warn('user_ideas table not found, checking cache');
+        const cachedIdea = ideaCache.get(ideaId);
+        if (cachedIdea && cachedIdea.user_id === userId) {
+          return cachedIdea;
+        }
+        return null;
       }
       console.error('Error fetching user idea:', error);
       throw new Error('Failed to fetch idea');
@@ -447,21 +495,12 @@ export async function getUserIdeaById(userId, ideaId) {
     return data;
   } catch (error) {
     console.error('Get user idea by ID error:', error);
-    // Return mock data if database is not set up
-    return {
-      id: ideaId,
-      user_id: userId,
-      title: 'Sample Business Idea',
-      description: 'This is a sample business idea for demonstration purposes.',
-      category: 'Technology',
-      difficulty: 'medium',
-      target_audience: 'Consumers',
-      budget_range: '$1,000 - $10,000',
-      timeframe: '3-6 months',
-      interests_skills: 'Technology, Innovation',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    // Check cache as fallback
+    const cachedIdea = ideaCache.get(ideaId);
+    if (cachedIdea && cachedIdea.user_id === userId) {
+      return cachedIdea;
+    }
+    return null;
   }
 }
 

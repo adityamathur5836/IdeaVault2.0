@@ -42,22 +42,21 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
       setIsGeneratingReport(true);
       setError(null);
 
-      // Check Supabase configuration before proceeding
-      if (!isSupabaseConfigured()) {
-        const configError = getSupabaseConfigError();
-        const errorMsg = `${configError.title}: ${configError.message}`;
-        setError(errorMsg);
-        toast.error('Database configuration required. Please check your environment setup.');
-        return;
-      }
-
-      // Navigate to the idea report page
-      router.push(`/ideas/${idea.id}/report`);
+      // Simply navigate to report; detail/report pages now handle cache fallbacks
+      const ideaId = idea.id;
+      // Ensure the idea is available in local cache for the report page
+      try {
+        const existing = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+        if (!existing[String(ideaId)]) {
+          localStorage.setItem('generated_ideas_cache', JSON.stringify({ ...existing, [String(ideaId)]: idea }));
+        }
+      } catch (_) {}
+      router.push(`/ideas/${ideaId}/report`);
     } catch (err) {
-      const errorMsg = 'Failed to navigate to report page. Please try again.';
+      const errorMsg = 'Failed to prepare idea for report generation. Please try again.';
       setError(errorMsg);
       toast.error(errorMsg);
-      console.error('Navigation error:', err);
+      console.error('Report preparation error:', err);
     } finally {
       setIsGeneratingReport(false);
     }
@@ -164,12 +163,38 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
           </div>
         </div>
 
+        {/* Key Innovation Section */}
+        {idea.key_innovation && (
+          <div className="space-y-2 p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
+            <div className="flex items-center text-xs font-semibold text-purple-700 uppercase tracking-wide">
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Key Innovation
+            </div>
+            <p className="text-sm text-purple-900 font-medium leading-relaxed">
+              {idea.key_innovation}
+            </p>
+          </div>
+        )}
+
+        {/* Market Potential Section */}
+        {idea.market_potential && (
+          <div className="space-y-2 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+            <div className="flex items-center text-xs font-semibold text-green-700 uppercase tracking-wide">
+              <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+              Market Potential
+            </div>
+            <p className="text-sm text-green-900 font-medium leading-relaxed">
+              {idea.market_potential}
+            </p>
+          </div>
+        )}
+
         {/* Enhanced Tags Section */}
         {idea.tags && idea.tags.length > 0 && (
           <div className="space-y-2">
             <div className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Tags</div>
             <div className="flex flex-wrap gap-2">
-              {idea.tags.slice(0, 3).map((tag, index) => (
+              {idea.tags.slice(0, 4).map((tag, index) => (
                 <Badge
                   key={index}
                   variant="outline"
@@ -180,13 +205,13 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
                   {tag}
                 </Badge>
               ))}
-              {idea.tags.length > 3 && (
+              {idea.tags.length > 4 && (
                 <Badge
                   variant="default"
                   size="xs"
                   className="bg-slate-200/80 text-slate-600 font-medium"
                 >
-                  +{idea.tags.length - 3} more
+                  +{idea.tags.length - 4} more
                 </Badge>
               )}
             </div>

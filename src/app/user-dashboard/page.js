@@ -51,7 +51,7 @@ const statusOptions = [
 export default function UserDashboardPage() {
   const { isSignedIn, user } = useUser();
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const {
     refreshTrigger,
     dashboardData,
@@ -104,7 +104,7 @@ export default function UserDashboardPage() {
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      showToast('Failed to load dashboard data', 'error');
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -150,7 +150,10 @@ export default function UserDashboardPage() {
   const savedIdeas = ideas.filter(idea => idea.status === 'saved').length;
   const inProgressIdeas = ideas.filter(idea => idea.status === 'in_progress').length;
   const completedIdeas = ideas.filter(idea => idea.status === 'completed').length;
-  const availableCredits = credits ? credits.total_credits - credits.used_credits : 0;
+  const totalCredits = Number(credits?.total_credits ?? 0);
+  const usedCredits = Number(credits?.used_credits ?? 0);
+  const computedAvailable = totalCredits - usedCredits;
+  const availableCredits = Number.isFinite(computedAvailable) && computedAvailable >= 0 ? computedAvailable : 0;
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -387,12 +390,12 @@ export default function UserDashboardPage() {
                         <Plus className="h-4 w-4 mr-2" />
                         Generate New Idea
                       </Button>
-                      <Button variant="outline" asChild>
-                        <Link href="/explore">
+                      <Link href="/explore">
+                        <Button variant="outline">
                           <Search className="h-4 w-4 mr-2" />
                           Explore Ideas
-                        </Link>
-                      </Button>
+                        </Button>
+                      </Link>
                     </div>
                   )}
                 </CardContent>
@@ -470,11 +473,11 @@ function IdeaCard({ idea, viewMode, availableCredits, onDelete, onUpdateStatus, 
               </div>
             </div>
             <div className="flex gap-2 ml-4">
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/ideas/${idea.id}`}>
+              <Link href={`/ideas/${idea.id}`}>
+                <Button variant="outline" size="sm">
                   <Eye className="h-4 w-4" />
-                </Link>
-              </Button>
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 size="sm"
@@ -538,12 +541,12 @@ function IdeaCard({ idea, viewMode, availableCredits, onDelete, onUpdateStatus, 
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1" asChild>
-            <Link href={`/ideas/${idea.id}`}>
+          <Link href={`/ideas/${idea.id}`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full">
               <Eye className="h-4 w-4 mr-1" />
               View Report
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"

@@ -3,24 +3,169 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #ffffff;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --ring: #3b82f6;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: #334155;
+  --input: #1e293b;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --ring: #3b82f6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
+  --border-radius: var(--radius);
+  --font-sans: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #334155;
+    --input: #1e293b;
+    --secondary: #1e293b;
+    --secondary-foreground: #f8fafc;
+    --accent: #1e293b;
+    --accent-foreground: #f8fafc;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* Improved text contrast for light mode */
+.text-slate-600 {
+  color: #475569 !important;
+}
+
+.text-slate-500 {
+  color: #64748b !important;
+}
+
+.text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Dark mode text improvements */
+.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-400 {
+  color: #e2e8f0 !important;
+}
+
+/* Form input improvements */
+input, textarea, select {
+  color: var(--foreground) !important;
+}
+
+/* Ensure input text is dark and visible */
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+input[type="number"], 
+textarea, 
+select {
+  color: #1e293b !important;
+  font-weight: 500;
+}
+
+input[type="text"]::placeholder, 
+input[type="email"]::placeholder, 
+input[type="password"]::placeholder, 
+input[type="number"]::placeholder, 
+textarea::placeholder {
+  color: #64748b !important;
+  font-weight: 400;
+}
+
+/* Select option styling */
+select option {
+  color: #1e293b !important;
+  background-color: white !important;
+}
+
+.dark input, .dark textarea, .dark select {
+  background-color: var(--input) !important;
+  border-color: var(--border) !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.dark select option {
+  color: #f8fafc !important;
+  background-color: #1e293b !important;
+}
+
+/* Card and component improvements */
+.dark .bg-white {
+  background-color: var(--background) !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: var(--muted) !important;
+}
+
+.dark .border-slate-200 {
+  border-color: var(--border) !important;
+}
+
+/* Improve contrast for cards and subtle text in dark mode */
+.dark .text-slate-600 { color: #cbd5e1 !important; }
+.dark .text-slate-700 { color: #e2e8f0 !important; }
+.dark .border { border-color: var(--border) !important; }
+.dark .shadow-sm, .dark .shadow-lg { box-shadow: 0 1px 2px 0 rgba(0,0,0,.5) !important; }

@@ -128,9 +128,79 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Shared reports table for export/share functionality
+CREATE TABLE IF NOT EXISTS shared_reports (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  share_token TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL,
+  idea_id UUID REFERENCES user_ideas(id) ON DELETE CASCADE,
+  idea_data JSONB NOT NULL,
+  report_data JSONB NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  view_count INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_viewed_at TIMESTAMP WITH TIME ZONE,
+  deactivated_at TIMESTAMP WITH TIME ZONE
+);
+
+-- System logs table for fault diagnosis
+CREATE TABLE IF NOT EXISTS system_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT,
+  operation TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('success', 'error', 'warning', 'info')),
+  message TEXT,
+  error_details JSONB,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Performance metrics table
+CREATE TABLE IF NOT EXISTS performance_metrics (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  operation_type TEXT NOT NULL,
+  duration_ms INTEGER NOT NULL,
+  success BOOLEAN NOT NULL,
+  user_id TEXT,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Triggers for updated_at
 CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON user_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_ideas_updated_at BEFORE UPDATE ON user_ideas FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_milestones_updated_at BEFORE UPDATE ON milestones FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_credits_updated_at BEFORE UPDATE ON user_credits FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_idea_reports_updated_at BEFORE UPDATE ON idea_reports FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_shared_reports_updated_at BEFORE UPDATE ON shared_reports FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_shared_reports_share_token ON shared_reports(share_token);
+CREATE INDEX IF NOT EXISTS idx_shared_reports_user_id ON shared_reports(user_id);
+CREATE INDEX IF NOT EXISTS idx_shared_reports_expires_at ON shared_reports(expires_at);
+CREATE INDEX IF NOT EXISTS idx_shared_reports_is_active ON shared_reports(is_active);
+CREATE INDEX IF NOT EXISTS idx_system_logs_user_id ON system_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_system_logs_operation ON system_logs(operation);
+CREATE INDEX IF NOT EXISTS idx_system_logs_status ON system_logs(status);
+CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_performance_metrics_operation_type ON performance_metrics(operation_type);
+CREATE INDEX IF NOT EXISTS idx_performance_metrics_created_at ON performance_metrics(created_at);
+
+-- RLS policies for new tables
+ALTER TABLE shared_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE performance_metrics ENABLE ROW LEVEL SECURITY;
+
+-- Policies for shared_reports
+CREATE POLICY "Users can view own shared reports" ON shared_reports FOR SELECT USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can insert own shared reports" ON shared_reports FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Users can update own shared reports" ON shared_reports FOR UPDATE USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can delete own shared reports" ON shared_reports FOR DELETE USING (auth.uid()::text = user_id);
+
+-- Policies for system_logs (admin only for security)
+CREATE POLICY "Service role can manage system logs" ON system_logs FOR ALL USING (auth.role() = 'service_role');
+
+-- Policies for performance_metrics (admin only)
+CREATE POLICY "Service role can manage performance metrics" ON performance_metrics FOR ALL USING (auth.role() = 'service_role');
