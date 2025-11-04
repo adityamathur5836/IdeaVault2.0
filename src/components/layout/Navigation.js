@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useUser, UserButton } from '@clerk/nextjs';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useUser, UserButton } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   Lightbulb,
   Search,
@@ -15,41 +15,41 @@ import {
   Menu,
   X,
   Target
-} from 'lucide-react';
-import { useState } from 'react';
+} from "lucide-react";
+import { useState } from "react";
 
 const navigationItems = [
   {
-    name: 'Generate Ideas',
-    href: '/generate',
+    name: "Generate Ideas",
+    href: "/generate",
     icon: Lightbulb,
-    description: 'Create new business ideas'
+    description: "Create new business ideas"
   },
   {
-    name: 'Explore Ideas',
-    href: '/explore',
+    name: "Explore Ideas",
+    href: "/explore",
     icon: Search,
-    description: 'Browse curated ideas'
+    description: "Browse curated ideas"
   },
   {
-    name: 'Dashboard',
-    href: '/dashboard',
+    name: "Dashboard",
+    href: "/dashboard",
     icon: BarChart3,
-    description: 'Your saved ideas and progress',
+    description: "Your saved ideas and progress",
     requiresAuth: true
   },
   {
-    name: 'Milestones',
-    href: '/milestones',
+    name: "Milestones",
+    href: "/milestones",
     icon: Target,
-    description: 'Track your idea progress',
+    description: "Track your idea progress",
     requiresAuth: true
   },
   {
-    name: 'Community',
-    href: '/community',
+    name: "Community",
+    href: "/community",
     icon: Users,
-    description: 'Validate and discuss ideas'
+    description: "Validate and discuss ideas"
   }
 ];
 

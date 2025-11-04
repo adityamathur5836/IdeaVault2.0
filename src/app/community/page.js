@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingPage } from '@/components/ui/LoadingSpinner';
-import { useToast } from '@/components/ui/Toast';
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { LoadingPage } from "@/components/ui/LoadingSpinner";
+import { useToast } from "@/components/ui/Toast";
 import { 
   Users, 
   Star, 
@@ -17,7 +17,7 @@ import {
   ThumbsUp,
   Eye,
   Calendar
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function CommunityPage() {
   const { isSignedIn, user } = useUser();
@@ -94,24 +94,24 @@ export default function CommunityPage() {
       }, 1000);
       
     } catch (error) {
-      console.error('Error loading community data:', error);
-      toast.error('Failed to load community data. Please try again.');
+      console.error("Error loading community data:", error);
+      toast.error("Failed to load community data. Please try again.");
       setLoading(false);
     }
   };
 
   const rateIdea = async (ideaId, rating) => {
     if (!isSignedIn) {
-      toast.error('Please sign in to rate ideas');
+      toast.error("Please sign in to rate ideas");
       return;
     }
 
     try {
       // Simulate rating API call
-      toast.success('Thank you for your feedback!');
+      toast.success("Thank you for your feedback!");
     } catch (error) {
-      console.error('Error rating idea:', error);
-      toast.error('Failed to submit rating. Please try again.');
+      console.error("Error rating idea:", error);
+      toast.error("Failed to submit rating. Please try again.");
     }
   };
 

@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { generateGeminiEmbedding } from './geminiService.js';
+import { createClient } from "@supabase/supabase-js";
+import { generateGeminiEmbedding } from "./geminiService.js";
 
 // Initialize Supabase client for read-only ideas database (Supabase_a)
 const supabaseA = createClient(
@@ -21,7 +21,7 @@ export async function searchSimilarIdeas(query, limit = 5, threshold = 0.7) {
     
     // Perform vector similarity search using pgvector
     // Try the correct function name first
-    let { data, error } = await supabaseA.rpc('match_startup_ideas', {
+    let { data, error } = await supabaseA.rpc("match_startup_ideas", {
       query_embedding: queryEmbedding,
       match_threshold: threshold,
       match_count: limit
@@ -29,8 +29,8 @@ export async function searchSimilarIdeas(query, limit = 5, threshold = 0.7) {
 
     // If that fails, try the alternative function name
     if (error) {
-      console.log('Trying alternative vector search function...');
-      ({ data, error } = await supabaseA.rpc('match_ideas', {
+      console.log("Trying alternative vector search function...");
+      ({ data, error } = await supabaseA.rpc("match_ideas", {
         query_embedding: queryEmbedding,
         match_threshold: threshold,
         match_count: limit
@@ -38,7 +38,7 @@ export async function searchSimilarIdeas(query, limit = 5, threshold = 0.7) {
     }
 
     if (error) {
-      console.error('Vector search error:', error);
+      console.error("Vector search error:", error);
       // Fallback to text-based search
       return await fallbackTextSearch(query, limit);
     }
@@ -48,17 +48,17 @@ export async function searchSimilarIdeas(query, limit = 5, threshold = 0.7) {
       id: item.id,
       title: item.name || item.title,
       description: item.product_description || item.description || `Innovative solution with ${item.upvotes || 0} upvotes from the community.`,
-      category: extractPrimaryCategory(item.category_tags) || 'Technology',
+      category: extractPrimaryCategory(item.category_tags) || "Technology",
       difficulty: estimateDifficulty(item.upvotes),
-      target_audience: estimateTargetAudience(item.category_tags) || 'General',
-      tags: parseTagsArray(item.category_tags) || ['Technology'],
+      target_audience: estimateTargetAudience(item.category_tags) || "General",
+      tags: parseTagsArray(item.category_tags) || ["Technology"],
       upvotes: item.upvotes || 0,
-      source: 'product_hunt',
+      source: "product_hunt",
       similarity: item.similarity || 0
     }));
 
   } catch (error) {
-    console.error('Error in vector search:', error);
+    console.error("Error in vector search:", error);
     // Fallback to text-based search
     return await fallbackTextSearch(query, limit);
   }
@@ -72,11 +72,11 @@ export async function searchSimilarIdeas(query, limit = 5, threshold = 0.7) {
  */
 async function fallbackTextSearch(query, limit) {
   try {
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+    const searchTerms = query.toLowerCase().split(" ").filter(term => term.length > 2);
     
     let queryBuilder = supabaseA
-      .from('product_hunt_products')
-      .select('*')
+      .from("product_hunt_products")
+      .select("*")
       .limit(limit);
 
     // Add text search conditions
@@ -88,7 +88,7 @@ async function fallbackTextSearch(query, limit) {
     const { data, error } = await queryBuilder;
 
     if (error) {
-      console.error('Fallback search error:', error);
+      console.error("Fallback search error:", error);
       return [];
     }
 
@@ -96,17 +96,17 @@ async function fallbackTextSearch(query, limit) {
       id: item.id,
       title: item.name || item.title,
       description: item.product_description || item.description || `Innovative solution with ${item.upvotes || 0} upvotes from the community.`,
-      category: extractPrimaryCategory(item.category_tags) || 'Technology',
+      category: extractPrimaryCategory(item.category_tags) || "Technology",
       difficulty: estimateDifficulty(item.upvotes),
-      target_audience: estimateTargetAudience(item.category_tags) || 'General',
-      tags: parseTagsArray(item.category_tags) || ['Technology'],
+      target_audience: estimateTargetAudience(item.category_tags) || "General",
+      tags: parseTagsArray(item.category_tags) || ["Technology"],
       upvotes: item.upvotes || 0,
-      source: 'product_hunt',
+      source: "product_hunt",
       similarity: 0.5 // Default similarity for text search
     }));
 
   } catch (error) {
-    console.error('Error in fallback search:', error);
+    console.error("Error in fallback search:", error);
     return [];
   }
 }
@@ -119,13 +119,13 @@ async function fallbackTextSearch(query, limit) {
 export async function getRandomIdeas(limit = 5) {
   try {
     const { data, error } = await supabaseA
-      .from('product_hunt_products')
-      .select('*')
-      .order('upvotes', { ascending: false })
+      .from("product_hunt_products")
+      .select("*")
+      .order("upvotes", { ascending: false })
       .limit(limit * 2); // Get more to randomize
 
     if (error) {
-      console.error('Error getting random ideas:', error);
+      console.error("Error getting random ideas:", error);
       return [];
     }
 
@@ -135,17 +135,17 @@ export async function getRandomIdeas(limit = 5) {
       id: item.id,
       title: item.name || item.title,
       description: item.product_description || item.description || `Innovative solution with ${item.upvotes || 0} upvotes from the community.`,
-      category: extractPrimaryCategory(item.category_tags) || 'Technology',
+      category: extractPrimaryCategory(item.category_tags) || "Technology",
       difficulty: estimateDifficulty(item.upvotes),
-      target_audience: estimateTargetAudience(item.category_tags) || 'General',
-      tags: parseTagsArray(item.category_tags) || ['Technology'],
+      target_audience: estimateTargetAudience(item.category_tags) || "General",
+      tags: parseTagsArray(item.category_tags) || ["Technology"],
       upvotes: item.upvotes || 0,
-      source: 'product_hunt',
+      source: "product_hunt",
       similarity: 0.3 // Lower similarity for random ideas
     }));
 
   } catch (error) {
-    console.error('Error getting random ideas:', error);
+    console.error("Error getting random ideas:", error);
     return [];
   }
 }
@@ -159,14 +159,14 @@ export async function getRandomIdeas(limit = 5) {
 export async function searchByCategory(category, limit = 5) {
   try {
     const { data, error } = await supabaseA
-      .from('product_hunt_products')
-      .select('*')
-      .ilike('category_tags', `%${category}%`)
-      .order('upvotes', { ascending: false })
+      .from("product_hunt_products")
+      .select("*")
+      .ilike("category_tags", `%${category}%`)
+      .order("upvotes", { ascending: false })
       .limit(limit);
 
     if (error) {
-      console.error('Category search error:', error);
+      console.error("Category search error:", error);
       return await getRandomIdeas(limit);
     }
 
@@ -176,15 +176,15 @@ export async function searchByCategory(category, limit = 5) {
       description: item.product_description || item.description || `Innovative ${category} solution with ${item.upvotes || 0} upvotes from the community.`,
       category: extractPrimaryCategory(item.category_tags) || category,
       difficulty: estimateDifficulty(item.upvotes),
-      target_audience: estimateTargetAudience(item.category_tags) || 'General',
+      target_audience: estimateTargetAudience(item.category_tags) || "General",
       tags: parseTagsArray(item.category_tags) || [category],
       upvotes: item.upvotes || 0,
-      source: 'product_hunt',
+      source: "product_hunt",
       similarity: 0.8 // High similarity for category matches
     }));
 
   } catch (error) {
-    console.error('Error in category search:', error);
+    console.error("Error in category search:", error);
     return await getRandomIdeas(limit);
   }
 }
@@ -195,28 +195,28 @@ export async function searchByCategory(category, limit = 5) {
 
 // Extract primary category from category_tags string
 function extractPrimaryCategory(categoryTags) {
-  if (!categoryTags) return 'Technology';
+  if (!categoryTags) return "Technology";
 
   // Category tags are usually comma-separated or space-separated
   const tags = categoryTags.split(/[,\s]+/).filter(tag => tag.trim());
 
   // Common category mappings
   const categoryMap = {
-    'TECH': 'Technology',
-    'PRODUCTIVITY': 'Productivity',
-    'DESIGN': 'Design',
-    'MARKETING': 'Marketing',
-    'FINANCE': 'Finance',
-    'HEALTH': 'Healthcare',
-    'EDUCATION': 'Education',
-    'SOCIAL': 'Social',
-    'GAMING': 'Gaming',
-    'TRAVEL': 'Travel',
-    'FOOD': 'Food & Drink',
-    'MUSIC': 'Music',
-    'SPORTS': 'Sports',
-    'NEWS': 'News',
-    'BUSINESS': 'Business'
+    "TECH": "Technology",
+    "PRODUCTIVITY": "Productivity",
+    "DESIGN": "Design",
+    "MARKETING": "Marketing",
+    "FINANCE": "Finance",
+    "HEALTH": "Healthcare",
+    "EDUCATION": "Education",
+    "SOCIAL": "Social",
+    "GAMING": "Gaming",
+    "TRAVEL": "Travel",
+    "FOOD": "Food & Drink",
+    "MUSIC": "Music",
+    "SPORTS": "Sports",
+    "NEWS": "News",
+    "BUSINESS": "Business"
   };
 
   for (const tag of tags) {
@@ -227,46 +227,46 @@ function extractPrimaryCategory(categoryTags) {
   }
 
   // Return first tag if no mapping found
-  return tags[0] ? tags[0].charAt(0).toUpperCase() + tags[0].slice(1).toLowerCase() : 'Technology';
+  return tags[0] ? tags[0].charAt(0).toUpperCase() + tags[0].slice(1).toLowerCase() : "Technology";
 }
 
 // Estimate difficulty based on upvotes
 function estimateDifficulty(upvotes) {
-  if (!upvotes) return 'medium';
+  if (!upvotes) return "medium";
 
-  if (upvotes > 5000) return 'hard';
-  if (upvotes > 1000) return 'medium';
-  return 'easy';
+  if (upvotes > 5000) return "hard";
+  if (upvotes > 1000) return "medium";
+  return "easy";
 }
 
 // Estimate target audience from category tags
 function estimateTargetAudience(categoryTags) {
-  if (!categoryTags) return 'General';
+  if (!categoryTags) return "General";
 
   const tags = categoryTags.toLowerCase();
 
-  if (tags.includes('developer') || tags.includes('tech') || tags.includes('api')) {
-    return 'Developers';
+  if (tags.includes("developer") || tags.includes("tech") || tags.includes("api")) {
+    return "Developers";
   }
-  if (tags.includes('business') || tags.includes('productivity') || tags.includes('enterprise')) {
-    return 'Businesses';
+  if (tags.includes("business") || tags.includes("productivity") || tags.includes("enterprise")) {
+    return "Businesses";
   }
-  if (tags.includes('design') || tags.includes('creative')) {
-    return 'Designers';
+  if (tags.includes("design") || tags.includes("creative")) {
+    return "Designers";
   }
-  if (tags.includes('marketing') || tags.includes('social')) {
-    return 'Marketers';
+  if (tags.includes("marketing") || tags.includes("social")) {
+    return "Marketers";
   }
-  if (tags.includes('student') || tags.includes('education')) {
-    return 'Students';
+  if (tags.includes("student") || tags.includes("education")) {
+    return "Students";
   }
 
-  return 'General';
+  return "General";
 }
 
 // Parse tags array from category_tags string
 function parseTagsArray(categoryTags) {
-  if (!categoryTags) return ['Technology'];
+  if (!categoryTags) return ["Technology"];
 
   return categoryTags
     .split(/[,\s]+/)

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingPage } from '@/components/ui/LoadingSpinner';
-import { useToast } from '@/components/ui/Toast';
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { LoadingPage } from "@/components/ui/LoadingSpinner";
+import { useToast } from "@/components/ui/Toast";
 import { 
   Lightbulb, 
   Plus, 
@@ -21,7 +21,7 @@ import {
   Trash2,
   ExternalLink,
   Heart
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function DashboardPage() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -40,7 +40,7 @@ export default function DashboardPage() {
   // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push('/sign-in');
+      router.push("/sign-in");
     }
   }, [isSignedIn, isLoaded, router]);
 
@@ -53,10 +53,10 @@ export default function DashboardPage() {
 
   const loadDashboardData = async () => {
     try {
-      const response = await fetch('/api/dashboard');
+      const response = await fetch("/api/dashboard");
       
       if (!response.ok) {
-        throw new Error('Failed to load dashboard data');
+        throw new Error("Failed to load dashboard data");
       }
 
       const data = await response.json();
@@ -64,25 +64,25 @@ export default function DashboardPage() {
       setStats(data.stats || stats);
       
     } catch (error) {
-      console.error('Error loading dashboard:', error);
-      toast.error('Failed to load dashboard. Please try again.');
+      console.error("Error loading dashboard:", error);
+      toast.error("Failed to load dashboard. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const deleteIdea = async (ideaId) => {
-    if (!confirm('Are you sure you want to delete this idea?')) {
+    if (!confirm("Are you sure you want to delete this idea?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/ideas/${ideaId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete idea');
+        throw new Error("Failed to delete idea");
       }
 
       setIdeas(prev => prev.filter(idea => idea.id !== ideaId));
@@ -91,11 +91,11 @@ export default function DashboardPage() {
         totalIdeas: prev.totalIdeas - 1
       }));
       
-      toast.success('Idea deleted successfully');
+      toast.success("Idea deleted successfully");
       
     } catch (error) {
-      console.error('Error deleting idea:', error);
-      toast.error('Failed to delete idea. Please try again.');
+      console.error("Error deleting idea:", error);
+      toast.error("Failed to delete idea. Please try again.");
     }
   };
 
@@ -114,10 +114,10 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome back, {user?.firstName || 'there'}!
+            Welcome back, {user?.firstName || "there"}!
           </h1>
           <p className="text-slate-600">
-            Here's an overview of your business ideas and activity.
+            Here"s an overview of your business ideas and activity.
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/generate')}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/generate")}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Plus className="h-5 w-5 mr-2" />
@@ -190,7 +190,7 @@ export default function DashboardPage() {
             </CardHeader>
           </Card>
           
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/explore')}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push("/explore")}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Search className="h-5 w-5 mr-2" />
@@ -207,7 +207,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-slate-900">Your Ideas</h2>
-            <Button variant="outline" onClick={() => router.push('/generate')}>
+            <Button variant="outline" onClick={() => router.push("/generate")}>
               <Plus className="h-4 w-4 mr-2" />
               Add New
             </Button>
@@ -223,11 +223,11 @@ export default function DashboardPage() {
                     Start by generating your first business idea or exploring our collection.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button onClick={() => router.push('/generate')}>
+                    <Button onClick={() => router.push("/generate")}>
                       <Plus className="h-4 w-4 mr-2" />
                       Generate Idea
                     </Button>
-                    <Button variant="outline" onClick={() => router.push('/explore')}>
+                    <Button variant="outline" onClick={() => router.push("/explore")}>
                       <Search className="h-4 w-4 mr-2" />
                       Explore Ideas
                     </Button>

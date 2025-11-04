@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { useToast } from '@/components/ui/Toast';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useToast } from "@/components/ui/Toast";
 import { 
   ArrowLeft,
   Bookmark,
@@ -21,7 +21,7 @@ import {
   Heart,
   MessageCircle,
   Star
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function IdeaDetailPage() {
   const params = useParams();
@@ -38,7 +38,7 @@ export default function IdeaDetailPage() {
     1: {
       id: 1,
       title: "AI-Powered Personal Finance Assistant",
-      description: "A comprehensive mobile application that leverages machine learning algorithms to analyze users' spending patterns, income fluctuations, and financial goals. The app provides personalized financial advice, automated budgeting suggestions, and predictive insights to help users make better financial decisions. Features include expense categorization, bill reminders, investment recommendations, and integration with major banks and financial institutions.",
+      description: "A comprehensive mobile application that leverages machine learning algorithms to analyze users" spending patterns, income fluctuations, and financial goals. The app provides personalized financial advice, automated budgeting suggestions, and predictive insights to help users make better financial decisions. Features include expense categorization, bill reminders, investment recommendations, and integration with major banks and financial institutions.",
       category: "Finance",
       difficulty: "medium",
       target_audience: "Consumers",
@@ -118,12 +118,12 @@ export default function IdeaDetailPage() {
         if (ideaData) {
           setIdea(ideaData);
         } else {
-          toast.error('Idea not found');
-          router.push('/explore');
+          toast.error("Idea not found");
+          router.push("/explore");
         }
       } catch (error) {
-        console.error('Error loading idea:', error);
-        toast.error('Failed to load idea details');
+        console.error("Error loading idea:", error);
+        toast.error("Failed to load idea details");
       } finally {
         setLoading(false);
       }
@@ -136,29 +136,29 @@ export default function IdeaDetailPage() {
 
   const saveIdea = async () => {
     if (!isSignedIn) {
-      toast.error('Please sign in to save ideas');
-      router.push('/sign-in');
+      toast.error("Please sign in to save ideas");
+      router.push("/sign-in");
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/save-idea', {
-        method: 'POST',
+      const response = await fetch("/api/save-idea", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(idea),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save idea');
+        throw new Error("Failed to save idea");
       }
 
-      toast.success('Idea saved to your dashboard!');
+      toast.success("Idea saved to your dashboard!");
     } catch (error) {
-      console.error('Error saving idea:', error);
-      toast.error('Failed to save idea. Please try again.');
+      console.error("Error saving idea:", error);
+      toast.error("Failed to save idea. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -174,7 +174,7 @@ export default function IdeaDetailPage() {
     } catch (error) {
       // Fallback to copying URL
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
+      toast.success("Link copied to clipboard!");
     }
   };
 
@@ -200,7 +200,7 @@ export default function IdeaDetailPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <p className="text-slate-600">Idea not found</p>
-            <Button onClick={() => router.push('/explore')} className="mt-4">
+            <Button onClick={() => router.push("/explore")} className="mt-4">
               Back to Explore
             </Button>
           </div>

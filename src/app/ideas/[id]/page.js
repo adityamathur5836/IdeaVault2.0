@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { useRouter, useParams } from 'next/navigation';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Badge } from '@/components/ui/Badge';
-import { useToast } from '@/components/ui/Toast';
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter, useParams } from "next/navigation";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 import { 
   FileText, 
   ArrowLeft,
@@ -24,9 +24,9 @@ import {
   Share2,
   Bookmark,
   BookmarkCheck
-} from 'lucide-react';
-import { getDifficultyVariant, getCategoryVariant } from '@/lib/badgeUtils';
-import { getUserIdeaById } from '@/lib/userService';
+} from "lucide-react";
+import { getDifficultyVariant, getCategoryVariant } from "@/lib/badgeUtils";
+import { getUserIdeaById } from "@/lib/userService";
 
 export default function IdeaDetailsPage() {
   const { isSignedIn, user } = useUser();
@@ -41,7 +41,7 @@ export default function IdeaDetailsPage() {
 
   useEffect(() => {
     if (!isSignedIn) {
-      router.push('/sign-in');
+      router.push("/sign-in");
       return;
     }
 
@@ -65,7 +65,7 @@ export default function IdeaDetailsPage() {
 
       // Final fallback: localStorage cache written by generate page
       try {
-        const localCache = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+        const localCache = JSON.parse(localStorage.getItem("generated_ideas_cache") || "{}");
         const cached = localCache[String(params.id)];
         if (cached) {
           setIdea(cached);
@@ -74,10 +74,10 @@ export default function IdeaDetailsPage() {
         }
       } catch (_) {}
 
-      throw new Error('Idea not found');
+      throw new Error("Idea not found");
     } catch (err) {
-      console.error('Error fetching idea:', err);
-      setError(err.message || 'Failed to fetch idea');
+      console.error("Error fetching idea:", err);
+      setError(err.message || "Failed to fetch idea");
     } finally {
       setLoading(false);
     }
@@ -91,9 +91,9 @@ export default function IdeaDetailsPage() {
     try {
       // Implement bookmark functionality
       setIsBookmarked(!isBookmarked);
-      toast.success(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks');
+      toast.success(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
     } catch (err) {
-      toast.error('Failed to update bookmark');
+      toast.error("Failed to update bookmark");
     }
   };
 
@@ -107,10 +107,10 @@ export default function IdeaDetailsPage() {
         });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        toast.success('Link copied to clipboard');
+        toast.success("Link copied to clipboard");
       }
     } catch (err) {
-      toast.error('Failed to share');
+      toast.error("Failed to share");
     }
   };
 
@@ -146,7 +146,7 @@ export default function IdeaDetailsPage() {
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Go Back
                   </Button>
-                  <Button onClick={() => router.push('/generate')}>
+                  <Button onClick={() => router.push("/generate")}>
                     Generate New Ideas
                   </Button>
                 </div>
@@ -169,7 +169,7 @@ export default function IdeaDetailsPage() {
               <Lightbulb className="h-16 w-16 mx-auto mb-4 text-slate-300" />
               <h2 className="text-xl font-bold text-slate-700 mb-2">No Idea Found</h2>
               <p className="text-slate-600 mb-6">The requested idea could not be found.</p>
-              <Button onClick={() => router.push('/generate')}>
+              <Button onClick={() => router.push("/generate")}>
                 Generate New Ideas
               </Button>
             </CardContent>
@@ -318,7 +318,7 @@ export default function IdeaDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {idea.key_features.split('\n').filter(feature => feature.trim()).map((feature, index) => (
+                    {idea.key_features.split("\n").filter(feature => feature.trim()).map((feature, index) => (
                       <div key={index} className="flex items-start">
                         <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                         <p className="text-slate-700">{feature.trim()}</p>
@@ -347,7 +347,7 @@ export default function IdeaDetailsPage() {
                 </Button>
                 
                 <Button 
-                  onClick={() => router.push('/generate')}
+                  onClick={() => router.push("/generate")}
                   variant="outline"
                   className="w-full"
                 >
@@ -376,7 +376,7 @@ export default function IdeaDetailsPage() {
                   <div>
                     <p className="text-sm font-medium text-slate-700 mb-1">Source</p>
                     <Badge variant="outline" size="sm">
-                      {idea.source === 'gemini_synthesis' ? 'AI Generated' : 'Database Match'}
+                      {idea.source === "gemini_synthesis" ? "AI Generated" : "Database Match"}
                     </Badge>
                   </div>
                 )}

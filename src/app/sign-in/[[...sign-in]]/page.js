@@ -1,6 +1,6 @@
-import { SignIn } from '@clerk/nextjs';
-import Link from 'next/link';
-import { Lightbulb } from 'lucide-react';
+import { SignIn } from "@clerk/nextjs";
+import Link from "next/link";
+import { Lightbulb } from "lucide-react";
 
 export default function SignInPage() {
   return (
@@ -14,7 +14,7 @@ export default function SignInPage() {
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Or{' '}
+          Or{" "}
           <Link
             href="/sign-up"
             className="font-medium text-slate-900 hover:text-slate-700"

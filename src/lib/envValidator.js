@@ -8,20 +8,20 @@
 const CLIENT_ENV_VARS = {
   // Clerk Authentication (client-side)
   clerk: {
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY': process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   },
 
   // Supabase Configuration (client-side)
   supabase: {
-    'NEXT_PUBLIC_SUPABASE_A_URL': process.env.NEXT_PUBLIC_SUPABASE_A_URL,
-    'NEXT_PUBLIC_SUPABASE_A_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_A_ANON_KEY,
-    'NEXT_PUBLIC_SUPABASE_B_URL': process.env.NEXT_PUBLIC_SUPABASE_B_URL,
-    'NEXT_PUBLIC_SUPABASE_B_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_B_ANON_KEY,
+    "NEXT_PUBLIC_SUPABASE_A_URL": process.env.NEXT_PUBLIC_SUPABASE_A_URL,
+    "NEXT_PUBLIC_SUPABASE_A_ANON_KEY": process.env.NEXT_PUBLIC_SUPABASE_A_ANON_KEY,
+    "NEXT_PUBLIC_SUPABASE_B_URL": process.env.NEXT_PUBLIC_SUPABASE_B_URL,
+    "NEXT_PUBLIC_SUPABASE_B_ANON_KEY": process.env.NEXT_PUBLIC_SUPABASE_B_ANON_KEY,
   },
 
   // Application Configuration
   app: {
-    'NEXT_PUBLIC_APP_URL': process.env.NEXT_PUBLIC_APP_URL,
+    "NEXT_PUBLIC_APP_URL": process.env.NEXT_PUBLIC_APP_URL,
   }
 };
 
@@ -29,22 +29,22 @@ const CLIENT_ENV_VARS = {
 const SERVER_ENV_VARS = {
   // Clerk Authentication (server-side)
   clerk: {
-    'CLERK_SECRET_KEY': process.env.CLERK_SECRET_KEY,
+    "CLERK_SECRET_KEY": process.env.CLERK_SECRET_KEY,
   },
 
   // Supabase Configuration (server-side)
   supabase: {
-    'SUPABASE_B_SERVICE_ROLE_KEY': process.env.SUPABASE_B_SERVICE_ROLE_KEY,
+    "SUPABASE_B_SERVICE_ROLE_KEY": process.env.SUPABASE_B_SERVICE_ROLE_KEY,
   },
 
   // AI Configuration
   ai: {
-    'GOOGLE_GEMINI_API_KEY': process.env.GOOGLE_GEMINI_API_KEY,
+    "GOOGLE_GEMINI_API_KEY": process.env.GOOGLE_GEMINI_API_KEY,
   },
 };
 
 // Combined variables for server-side validation
-const REQUIRED_ENV_VARS = typeof window === 'undefined'
+const REQUIRED_ENV_VARS = typeof window === "undefined"
   ? { ...mergeEnvVars(CLIENT_ENV_VARS, SERVER_ENV_VARS) }
   : CLIENT_ENV_VARS;
 
@@ -78,7 +78,7 @@ function validateCategory(categoryName, variables) {
   Object.entries(variables).forEach(([key, value]) => {
     if (!value) {
       missing.push(key);
-    } else if (value.includes('placeholder') || value === 'your-key-here') {
+    } else if (value.includes("placeholder") || value === "your-key-here") {
       invalid.push(key);
     } else {
       valid.push(key);
@@ -140,7 +140,7 @@ export function validateEnvironment() {
  */
 export function getConfigurationErrors() {
   // Use client-side validation when running in browser
-  const validation = typeof window === 'undefined'
+  const validation = typeof window === "undefined"
     ? validateEnvironment()
     : validateClientEnvironment();
 
@@ -155,17 +155,17 @@ export function getConfigurationErrors() {
       const issues = [];
 
       if (category.missing.length > 0) {
-        issues.push(`Missing: ${category.missing.join(', ')}`);
+        issues.push(`Missing: ${category.missing.join(", ")}`);
       }
 
       if (category.invalid.length > 0) {
-        issues.push(`Invalid: ${category.invalid.join(', ')}`);
+        issues.push(`Invalid: ${category.invalid.join(", ")}`);
       }
 
       errors.push({
         category: category.category,
-        issues: issues.join('; '),
-        severity: category.missing.length > 0 ? 'error' : 'warning'
+        issues: issues.join("; "),
+        severity: category.missing.length > 0 ? "error" : "warning"
       });
     }
   });
@@ -178,7 +178,7 @@ export function getConfigurationErrors() {
  */
 export function isFeatureConfigured(featureName) {
   // Use client-side validation when running in browser
-  const validation = typeof window === 'undefined'
+  const validation = typeof window === "undefined"
     ? validateEnvironment()
     : validateClientEnvironment();
   return validation.categories[featureName]?.isValid || false;
@@ -228,7 +228,7 @@ export function validateClientEnvironment() {
  */
 export function getConfigurationStatus() {
   // Use client-side validation when running in browser
-  const validation = typeof window === 'undefined'
+  const validation = typeof window === "undefined"
     ? validateEnvironment()
     : validateClientEnvironment();
 
@@ -241,7 +241,7 @@ export function getConfigurationStatus() {
     features: {
       authentication: validation.categories.clerk?.isValid || false,
       database: validation.categories.supabase?.isValid || false,
-      ai: typeof window === 'undefined' ? (validation.categories.ai?.isValid || false) : true, // Assume AI is configured on client
+      ai: typeof window === "undefined" ? (validation.categories.ai?.isValid || false) : true, // Assume AI is configured on client
       app: validation.categories.app?.isValid || false,
     }
   };
@@ -251,21 +251,21 @@ export function getConfigurationStatus() {
  * Log configuration status to console (development only)
  */
 export function logConfigurationStatus() {
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== "development") {
     return;
   }
 
   const status = getConfigurationStatus();
   
-  console.log('🔧 Environment Configuration Status:');
-  console.log(`Overall Status: ${status.isValid ? '✅ Valid' : '❌ Invalid'}`);
+  console.log("🔧 Environment Configuration Status:");
+  console.log(`Overall Status: ${status.isValid ? "✅ Valid" : "❌ Invalid"}`);
   
   Object.entries(status.features).forEach(([feature, isValid]) => {
-    console.log(`${feature}: ${isValid ? '✅' : '❌'}`);
+    console.log(`${feature}: ${isValid ? "✅" : "❌"}`);
   });
 
   if (status.errors.length > 0) {
-    console.log('\n⚠️  Configuration Issues:');
+    console.log("\n⚠️  Configuration Issues:");
     status.errors.forEach(error => {
       console.log(`${error.category}: ${error.issues}`);
     });
@@ -280,6 +280,6 @@ export function resetValidationCache() {
 }
 
 // Auto-validate on module load in development
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   logConfigurationStatus();
 }

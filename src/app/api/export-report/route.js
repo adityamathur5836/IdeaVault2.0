@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import puppeteer from 'puppeteer';
-import { supabaseUserServer } from '@/lib/supabase';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import puppeteer from "puppeteer";
+import { supabaseUserServer } from "@/lib/supabase";
 
 /**
  * Export report as PDF using Puppeteer
@@ -10,13 +10,13 @@ export async function POST(request) {
   let browser = null;
   
   try {
-    console.log('[PDF Export] Starting export process');
+    console.log("[PDF Export] Starting export process");
     
     // Check authentication
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -25,25 +25,25 @@ export async function POST(request) {
     
     if (!ideaId || !reportData || !ideaData) {
       return NextResponse.json(
-        { error: 'Missing required fields: ideaId, reportData, ideaData' },
+        { error: "Missing required fields: ideaId, reportData, ideaData" },
         { status: 400 }
       );
     }
 
-    console.log('[PDF Export] Launching browser');
+    console.log("[PDF Export] Launching browser");
     
     // Launch Puppeteer browser
     browser = await puppeteer.launch({
       headless: true,
       args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
       ]
     });
 
@@ -52,28 +52,28 @@ export async function POST(request) {
     // Set viewport for consistent rendering
     await page.setViewport({ width: 1200, height: 800 });
 
-    console.log('[PDF Export] Generating HTML content');
+    console.log("[PDF Export] Generating HTML content");
     
     // Generate HTML content for the report
     const htmlContent = generateReportHTML(ideaData, reportData);
     
     // Set content and wait for rendering
     await page.setContent(htmlContent, { 
-      waitUntil: 'networkidle0',
+      waitUntil: "networkidle0",
       timeout: 30000 
     });
 
-    console.log('[PDF Export] Generating PDF');
+    console.log("[PDF Export] Generating PDF");
     
     // Generate PDF
     const pdf = await page.pdf({
-      format: 'A4',
+      format: "A4",
       printBackground: true,
       margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm'
+        top: "20mm",
+        right: "15mm",
+        bottom: "20mm",
+        left: "15mm"
       },
       displayHeaderFooter: true,
       headerTemplate: `
@@ -88,20 +88,20 @@ export async function POST(request) {
       `
     });
 
-    console.log('[PDF Export] PDF generated successfully');
+    console.log("[PDF Export] PDF generated successfully");
 
     // Return PDF as response
     return new NextResponse(pdf, {
       status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${ideaData.title.replace(/[^a-zA-Z0-9]/g, '_')}_report.pdf"`,
-        'Content-Length': pdf.length.toString()
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${ideaData.title.replace(/[^a-zA-Z0-9]/g, "_")}_report.pdf"`,
+        "Content-Length": pdf.length.toString()
       }
     });
 
   } catch (error) {
-    console.error('[PDF Export] Error:', error);
+    console.error("[PDF Export] Error:", error);
     return NextResponse.json(
       { error: `Failed to export PDF: ${error.message}` },
       { status: 500 }
@@ -132,7 +132,7 @@ function generateReportHTML(ideaData, reportData) {
       <title>${ideaData.title} - Business Report</title>
       <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
           line-height: 1.6;
           color: #333;
           max-width: 800px;
@@ -227,9 +227,9 @@ function generateReportHTML(ideaData, reportData) {
       <div class="header">
         <div class="title">${ideaData.title}</div>
         <div class="subtitle">
-          <span class="badge">${ideaData.category || 'Technology'}</span>
-          <span class="badge">${ideaData.difficulty || 'Medium'}</span>
-          <span class="badge">${ideaData.target_audience || 'General'}</span>
+          <span class="badge">${ideaData.category || "Technology"}</span>
+          <span class="badge">${ideaData.difficulty || "Medium"}</span>
+          <span class="badge">${ideaData.target_audience || "General"}</span>
         </div>
         <div style="margin-top: 10px; color: #6b7280; font-size: 14px;">
           Generated on ${new Date().toLocaleDateString()}
@@ -244,11 +244,11 @@ function generateReportHTML(ideaData, reportData) {
         </div>
         <div class="subsection">
           <div class="subsection-title">Problem Statement</div>
-          <div class="content">${businessConcept.problem_statement || 'Addressing key market challenges'}</div>
+          <div class="content">${businessConcept.problem_statement || "Addressing key market challenges"}</div>
         </div>
         <div class="subsection">
           <div class="subsection-title">Solution Overview</div>
-          <div class="content">${businessConcept.solution_overview || 'Innovative solution approach'}</div>
+          <div class="content">${businessConcept.solution_overview || "Innovative solution approach"}</div>
         </div>
       </div>
 
@@ -256,16 +256,16 @@ function generateReportHTML(ideaData, reportData) {
         <div class="section-title">Market Intelligence</div>
         <div class="subsection">
           <div class="subsection-title">Market Size</div>
-          <div class="content">${marketIntelligence.market_size || 'Significant market opportunity'}</div>
+          <div class="content">${marketIntelligence.market_size || "Significant market opportunity"}</div>
         </div>
         ${marketIntelligence.market_trends ? `
         <div class="subsection">
           <div class="subsection-title">Market Trends</div>
           <ul class="list">
-            ${marketIntelligence.market_trends.map(trend => `<li>${trend}</li>`).join('')}
+            ${marketIntelligence.market_trends.map(trend => `<li>${trend}</li>`).join("")}
           </ul>
         </div>
-        ` : ''}
+        ` : ""}
       </div>
 
       <div class="section">
@@ -274,10 +274,10 @@ function generateReportHTML(ideaData, reportData) {
         <div class="subsection">
           <div class="subsection-title">Core Features</div>
           <ul class="list">
-            ${productStrategy.core_features.map(feature => `<li><strong>${feature.name}:</strong> ${feature.description}</li>`).join('')}
+            ${productStrategy.core_features.map(feature => `<li><strong>${feature.name}:</strong> ${feature.description}</li>`).join("")}
           </ul>
         </div>
-        ` : ''}
+        ` : ""}
       </div>
 
       <div class="section">
@@ -289,9 +289,9 @@ function generateReportHTML(ideaData, reportData) {
               <div class="metric-value">${proj.amount}</div>
               <div class="metric-label">${proj.year}</div>
             </div>
-          `).join('')}
+          `).join("")}
         </div>
-        ` : ''}
+        ` : ""}
       </div>
 
       <div class="section">
@@ -300,18 +300,18 @@ function generateReportHTML(ideaData, reportData) {
         <div class="subsection">
           <div class="subsection-title">Key Strengths</div>
           <ul class="list">
-            ${evaluation.strengths.map(strength => `<li>${strength}</li>`).join('')}
+            ${evaluation.strengths.map(strength => `<li>${strength}</li>`).join("")}
           </ul>
         </div>
-        ` : ''}
+        ` : ""}
         ${evaluation.risks ? `
         <div class="subsection">
           <div class="subsection-title">Potential Risks</div>
           <ul class="list">
-            ${evaluation.risks.map(risk => `<li>${risk}</li>`).join('')}
+            ${evaluation.risks.map(risk => `<li>${risk}</li>`).join("")}
           </ul>
         </div>
-        ` : ''}
+        ` : ""}
       </div>
     </body>
     </html>

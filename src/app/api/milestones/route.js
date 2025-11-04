@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { getMilestones, createMilestone } from '@/lib/userService';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { getMilestones, createMilestone } from "@/lib/userService";
 
 export async function GET(request) {
   try {
     const { userId } = await auth();
     
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const ideaId = searchParams.get('idea_id');
+    const status = searchParams.get("status");
+    const ideaId = searchParams.get("idea_id");
 
     const filters = {};
     if (status) filters.status = status;
@@ -25,9 +25,9 @@ export async function GET(request) {
       milestones
     });
   } catch (error) {
-    console.error('Error fetching milestones:', error);
+    console.error("Error fetching milestones:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch milestones' },
+      { error: "Failed to fetch milestones" },
       { status: 500 }
     );
   }
@@ -38,7 +38,7 @@ export async function POST(request) {
     const { userId } = await auth();
     
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -46,7 +46,7 @@ export async function POST(request) {
 
     if (!title?.trim()) {
       return NextResponse.json(
-        { error: 'Title is required' },
+        { error: "Title is required" },
         { status: 400 }
       );
     }
@@ -55,8 +55,8 @@ export async function POST(request) {
       title: title.trim(),
       description: description?.trim() || null,
       idea_id: idea_id || null,
-      status: status || 'not_started',
-      priority: priority || 'medium',
+      status: status || "not_started",
+      priority: priority || "medium",
       due_date: due_date || null,
       completion_percentage: completion_percentage || 0
     };
@@ -68,9 +68,9 @@ export async function POST(request) {
       milestone
     });
   } catch (error) {
-    console.error('Error creating milestone:', error);
+    console.error("Error creating milestone:", error);
     return NextResponse.json(
-      { error: 'Failed to create milestone' },
+      { error: "Failed to create milestone" },
       { status: 500 }
     );
   }

@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { generateIdeaReportWithGemini } from '@/lib/geminiService';
-import { supabaseUserServer } from '@/lib/supabase';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { generateIdeaReportWithGemini } from "@/lib/geminiService";
+import { supabaseUserServer } from "@/lib/supabase";
 
 // Report generation queue and cache
 const reportQueue = new Map();
@@ -12,8 +12,8 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hour
  * Generate checksum for idea validation
  */
 function generateIdeaChecksum(idea) {
-  const data = `${idea.title}_${idea.description}_${idea.category || ''}_${Date.now()}`;
-  return Buffer.from(data).toString('base64').substring(0, 16);
+  const data = `${idea.title}_${idea.description}_${idea.category || ""}_${Date.now()}`;
+  return Buffer.from(data).toString("base64").substring(0, 16);
 }
 
 /**
@@ -22,20 +22,20 @@ function generateIdeaChecksum(idea) {
 async function fetchAndValidateIdea(ideaId, userId) {
   try {
     const { data: idea, error } = await supabaseUserServer
-      .from('user_ideas')
-      .select('*')
-      .eq('id', ideaId)
-      .eq('user_id', userId)
+      .from("user_ideas")
+      .select("*")
+      .eq("id", ideaId)
+      .eq("user_id", userId)
       .single();
 
     if (error) {
-      console.warn('Idea not found in user_ideas, using provided data');
+      console.warn("Idea not found in user_ideas, using provided data");
       return null;
     }
 
     return idea;
   } catch (error) {
-    console.warn('Database fetch failed:', error.message);
+    console.warn("Database fetch failed:", error.message);
     return null;
   }
 }
@@ -45,40 +45,40 @@ export async function POST(request) {
   let ideaChecksum = null;
 
   try {
-    console.log('[Report Generation] API called');
+    console.log("[Report Generation] API called");
 
     // Check authentication
     const { userId } = await auth();
     if (!userId) {
-      console.log('[Report Generation] Unauthorized access');
+      console.log("[Report Generation] Unauthorized access");
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     const { idea, ideaId } = await request.json();
-    console.log('[Report Generation] Request data:', { ideaId, ideaTitle: idea?.title });
+    console.log("[Report Generation] Request data:", { ideaId, ideaTitle: idea?.title });
 
     // Validate required fields
     if (!idea || !idea.title || !idea.description) {
-      console.log('[Report Generation] Missing required fields');
+      console.log("[Report Generation] Missing required fields");
       return NextResponse.json(
-        { error: 'Missing required fields: idea with title and description' },
+        { error: "Missing required fields: idea with title and description" },
         { status: 400 }
       );
     }
 
     // Generate checksum for validation
     ideaChecksum = generateIdeaChecksum(idea);
-    console.log('[Report Generation] Idea checksum:', ideaChecksum);
+    console.log("[Report Generation] Idea checksum:", ideaChecksum);
 
     // Check if report is already being generated
     const queueKey = `${userId}_${ideaId || idea.id}`;
     if (reportQueue.has(queueKey)) {
-      console.log('[Report Generation] Report already in queue');
+      console.log("[Report Generation] Report already in queue");
       return NextResponse.json(
-        { error: 'Report generation already in progress' },
+        { error: "Report generation already in progress" },
         { status: 429 }
       );
     }
@@ -87,7 +87,7 @@ export async function POST(request) {
     const cacheKey = `report_${ideaChecksum}`;
     const cached = reportCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('[Report Generation] Using cached report');
+      console.log("[Report Generation] Using cached report");
       return NextResponse.json({
         success: true,
         report: cached.data,
@@ -107,12 +107,12 @@ export async function POST(request) {
       ]);
 
       // Use database idea if available, otherwise use provided idea
-      const finalIdea = dbIdea.status === 'fulfilled' && dbIdea.value ? dbIdea.value : idea;
+      const finalIdea = dbIdea.status === "fulfilled" && dbIdea.value ? dbIdea.value : idea;
 
       // Validate idea consistency
-      if (ideaId && dbIdea.status === 'fulfilled' && dbIdea.value) {
+      if (ideaId && dbIdea.status === "fulfilled" && dbIdea.value) {
         if (dbIdea.value.title !== idea.title) {
-          console.warn('[Report Generation] Idea mismatch detected:', {
+          console.warn("[Report Generation] Idea mismatch detected:", {
             requestedId: ideaId,
             dbTitle: dbIdea.value.title,
             providedTitle: idea.title
@@ -120,7 +120,7 @@ export async function POST(request) {
         }
       }
 
-      console.log('[Report Generation] Calling Gemini API...');
+      console.log("[Report Generation] Calling Gemini API...");
       // Generate comprehensive business report using Gemini
       const report = await generateIdeaReportWithGemini(finalIdea);
 
@@ -149,8 +149,8 @@ export async function POST(request) {
 
   } catch (error) {
     const generationTime = Date.now() - startTime;
-    console.error('[Report Generation] Error:', error);
-    console.error('[Report Generation] Error details:', {
+    console.error("[Report Generation] Error:", error);
+    console.error("[Report Generation] Error details:", {
       message: error.message,
       stack: error.stack,
       generationTime,
@@ -158,30 +158,30 @@ export async function POST(request) {
     });
 
     // Return specific error messages for different failure types
-    if (error.message.includes('API key')) {
+    if (error.message.includes("API key")) {
       return NextResponse.json(
         {
-          error: 'AI service configuration error. Please contact support.',
+          error: "AI service configuration error. Please contact support.",
           generation_time_ms: generationTime
         },
         { status: 503 }
       );
     }
 
-    if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('429')) {
+    if (error.message.includes("quota") || error.message.includes("rate limit") || error.message.includes("429")) {
       return NextResponse.json(
         {
-          error: 'AI service temporarily unavailable. Please try again later.',
+          error: "AI service temporarily unavailable. Please try again later.",
           generation_time_ms: generationTime
         },
         { status: 429 }
       );
     }
 
-    if (error.message.includes('timeout')) {
+    if (error.message.includes("timeout")) {
       return NextResponse.json(
         {
-          error: 'Report generation timed out. Please try again.',
+          error: "Report generation timed out. Please try again.",
           generation_time_ms: generationTime
         },
         { status: 408 }
@@ -206,17 +206,17 @@ export async function GET(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const ideaId = searchParams.get('idea_id');
+    const ideaId = searchParams.get("idea_id");
 
     if (!ideaId) {
       return NextResponse.json(
-        { error: 'Missing idea_id parameter' },
+        { error: "Missing idea_id parameter" },
         { status: 400 }
       );
     }
@@ -224,14 +224,14 @@ export async function GET(request) {
     // TODO: Implement report caching/retrieval from database
     // For now, return a message indicating reports are generated on-demand
     return NextResponse.json({
-      message: 'Reports are generated on-demand. Use POST endpoint to generate a new report.',
+      message: "Reports are generated on-demand. Use POST endpoint to generate a new report.",
       idea_id: ideaId
     });
 
   } catch (error) {
-    console.error('Get report API error:', error);
+    console.error("Get report API error:", error);
     return NextResponse.json(
-      { error: 'Failed to retrieve report' },
+      { error: "Failed to retrieve report" },
       { status: 500 }
     );
   }

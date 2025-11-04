@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import React from "react";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 import { 
   AlertTriangle, 
   RefreshCw, 
@@ -11,7 +11,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp
-} from 'lucide-react';
+} from "lucide-react";
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -36,8 +36,8 @@ class AppErrorBoundary extends React.Component {
     });
 
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('App Error Boundary caught an error:', error, errorInfo);
+    if (process.env.NODE_ENV === "development") {
+      console.error("App Error Boundary caught an error:", error, errorInfo);
     }
 
     // Log error to system logs
@@ -51,10 +51,10 @@ class AppErrorBoundary extends React.Component {
 
   shouldAutoRetry(error) {
     const retryableErrors = [
-      'ChunkLoadError',
-      'Loading chunk',
-      'Network Error',
-      'Failed to fetch'
+      "ChunkLoadError",
+      "Loading chunk",
+      "Network Error",
+      "Failed to fetch"
     ];
 
     return retryableErrors.some(errorType =>
@@ -67,7 +67,7 @@ class AppErrorBoundary extends React.Component {
 
     setTimeout(() => {
       if (this.state.hasError) {
-        console.log('[Error Boundary] Executing auto-retry');
+        console.log("[Error Boundary] Executing auto-retry");
         this.handleRetry();
       }
     }, 2000 + (this.state.retryCount * 1000)); // Exponential backoff
@@ -75,14 +75,14 @@ class AppErrorBoundary extends React.Component {
 
   logErrorToSystem = async (error, errorInfo) => {
     try {
-      await fetch('/api/system-logs', {
-        method: 'POST',
+      await fetch("/api/system-logs", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          operation: 'error_boundary',
-          status: 'error',
+          operation: "error_boundary",
+          status: "error",
           message: error.message,
           error_details: {
             name: error.name,
@@ -98,7 +98,7 @@ class AppErrorBoundary extends React.Component {
         }),
       });
     } catch (logError) {
-      console.error('[Error Boundary] Failed to log error:', logError);
+      console.error("[Error Boundary] Failed to log error:", logError);
     }
   };
 
@@ -117,7 +117,7 @@ class AppErrorBoundary extends React.Component {
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   toggleDetails = () => {
@@ -128,42 +128,42 @@ class AppErrorBoundary extends React.Component {
 
   getErrorType = () => {
     const error = this.state.error;
-    if (!error) return 'Unknown Error';
+    if (!error) return "Unknown Error";
 
-    if (error.message.includes('ChunkLoadError') || error.message.includes('Loading chunk')) {
-      return 'Resource Loading Error';
+    if (error.message.includes("ChunkLoadError") || error.message.includes("Loading chunk")) {
+      return "Resource Loading Error";
     }
-    if (error.message.includes('Network') || error.message.includes('fetch')) {
-      return 'Network Error';
+    if (error.message.includes("Network") || error.message.includes("fetch")) {
+      return "Network Error";
     }
-    if (error.message.includes('Supabase') || error.message.includes('database')) {
-      return 'Database Configuration Error';
+    if (error.message.includes("Supabase") || error.message.includes("database")) {
+      return "Database Configuration Error";
     }
-    if (error.message.includes('Clerk') || error.message.includes('auth')) {
-      return 'Authentication Error';
+    if (error.message.includes("Clerk") || error.message.includes("auth")) {
+      return "Authentication Error";
     }
-    if (error.message.includes('Gemini') || error.message.includes('API key')) {
-      return 'AI Service Error';
+    if (error.message.includes("Gemini") || error.message.includes("API key")) {
+      return "AI Service Error";
     }
-    return 'Application Error';
+    return "Application Error";
   };
 
   getErrorSuggestion = () => {
     const errorType = this.getErrorType();
     
     switch (errorType) {
-      case 'Resource Loading Error':
-        return 'This usually happens when the app is updated. Try refreshing the page.';
-      case 'Network Error':
-        return 'Check your internet connection and try again.';
-      case 'Database Configuration Error':
-        return 'Database configuration is required. Please contact your administrator.';
-      case 'Authentication Error':
-        return 'Authentication service is not properly configured. Please contact support.';
-      case 'AI Service Error':
-        return 'AI service configuration is required. Please check your API keys.';
+      case "Resource Loading Error":
+        return "This usually happens when the app is updated. Try refreshing the page.";
+      case "Network Error":
+        return "Check your internet connection and try again.";
+      case "Database Configuration Error":
+        return "Database configuration is required. Please contact your administrator.";
+      case "Authentication Error":
+        return "Authentication service is not properly configured. Please contact support.";
+      case "AI Service Error":
+        return "AI service configuration is required. Please check your API keys.";
       default:
-        return 'An unexpected error occurred. Try refreshing the page or contact support if the problem persists.';
+        return "An unexpected error occurred. Try refreshing the page or contact support if the problem persists.";
     }
   };
 
@@ -171,7 +171,7 @@ class AppErrorBoundary extends React.Component {
     if (this.state.hasError) {
       const errorType = this.getErrorType();
       const suggestion = this.getErrorSuggestion();
-      const isConfigError = errorType.includes('Configuration') || errorType.includes('AI Service');
+      const isConfigError = errorType.includes("Configuration") || errorType.includes("AI Service");
 
       return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -193,7 +193,7 @@ class AppErrorBoundary extends React.Component {
 
                 {/* Error Title */}
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                  {isConfigError ? 'Configuration Required' : 'Something went wrong'}
+                  {isConfigError ? "Configuration Required" : "Something went wrong"}
                 </h1>
                 
                 {/* Error Type */}
@@ -245,7 +245,7 @@ class AppErrorBoundary extends React.Component {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open('/docs/setup', '_blank')}
+                      onClick={() => window.open("/docs/setup", "_blank")}
                       className="border-blue-300 text-blue-700 hover:bg-blue-100"
                     >
                       <ExternalLink className="h-3 w-3 mr-1" />
@@ -255,7 +255,7 @@ class AppErrorBoundary extends React.Component {
                 )}
 
                 {/* Error Details (Development) */}
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {process.env.NODE_ENV === "development" && this.state.error && (
                   <div className="text-left">
                     <Button
                       variant="ghost"

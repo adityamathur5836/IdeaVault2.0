@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { ErrorMessage } from '@/components/ui/ErrorBoundary';
-import { useToast } from '@/components/ui/Toast';
-import { isSupabaseConfigured, getSupabaseConfigError } from '@/lib/supabase';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { ErrorMessage } from "@/components/ui/ErrorBoundary";
+import { useToast } from "@/components/ui/Toast";
+import { isSupabaseConfigured, getSupabaseConfigError } from "@/lib/supabase";
 import {
   getDifficultyVariant,
   getCategoryVariant,
   getSourceVariant,
   getSourceText,
   getSourceIcon
-} from '@/lib/badgeUtils';
+} from "@/lib/badgeUtils";
 import {
   Target,
   TrendingUp,
@@ -27,7 +27,7 @@ import {
   Database,
   Zap,
   ArrowRight
-} from 'lucide-react';
+} from "lucide-react";
 
 export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }) {
   const router = useRouter();
@@ -46,17 +46,17 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
       const ideaId = idea.id;
       // Ensure the idea is available in local cache for the report page
       try {
-        const existing = JSON.parse(localStorage.getItem('generated_ideas_cache') || '{}');
+        const existing = JSON.parse(localStorage.getItem("generated_ideas_cache") || "{}");
         if (!existing[String(ideaId)]) {
-          localStorage.setItem('generated_ideas_cache', JSON.stringify({ ...existing, [String(ideaId)]: idea }));
+          localStorage.setItem("generated_ideas_cache", JSON.stringify({ ...existing, [String(ideaId)]: idea }));
         }
       } catch (_) {}
       router.push(`/ideas/${ideaId}/report`);
     } catch (err) {
-      const errorMsg = 'Failed to prepare idea for report generation. Please try again.';
+      const errorMsg = "Failed to prepare idea for report generation. Please try again.";
       setError(errorMsg);
       toast.error(errorMsg);
-      console.error('Report preparation error:', err);
+      console.error("Report preparation error:", err);
     } finally {
       setIsGeneratingReport(false);
     }
@@ -65,7 +65,7 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
   const getSourceBadge = (source) => {
     const variant = getSourceVariant(source);
     const text = getSourceText(source);
-    const IconComponent = getSourceIcon(source) === 'Sparkles' ? Sparkles : Database;
+    const IconComponent = getSourceIcon(source) === "Sparkles" ? Sparkles : Database;
 
     return (
       <Badge variant={variant} size="sm" className="shadow-sm">
@@ -76,10 +76,10 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
   };
 
   if (error) {
-    const isConfigError = error.includes('Database Configuration') || error.includes('environment variables');
+    const isConfigError = error.includes("Database Configuration") || error.includes("environment variables");
 
     return (
-      <Card className={`h-full ${isConfigError ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'}`}>
+      <Card className={`h-full ${isConfigError ? "border-amber-200 bg-amber-50" : "border-red-200 bg-red-50"}`}>
         <CardContent className="p-6">
           <ErrorMessage
             title={isConfigError ? "Configuration Required" : "Card Error"}
@@ -155,10 +155,10 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
           <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl p-3 border border-rose-100/60 hover:border-rose-200/80 transition-all duration-300 group-hover:shadow-sm">
             <div className="flex items-center text-xs font-semibold text-rose-700 mb-2">
               <Clock className="h-3.5 w-3.5 mr-1.5 text-rose-500" />
-              {idea.upvotes ? 'Upvotes' : 'Generated'}
+              {idea.upvotes ? "Upvotes" : "Generated"}
             </div>
             <div className="text-sm text-rose-900 font-medium">
-              {idea.upvotes ? `${idea.upvotes} votes` : 'Just now'}
+              {idea.upvotes ? `${idea.upvotes} votes` : "Just now"}
             </div>
           </div>
         </div>
@@ -253,7 +253,7 @@ export function IdeaCard({ idea, onSave, saving = false, showSaveButton = true }
             >
               {/* Save button hover effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <Save className={`h-4 w-4 relative z-10 ${saving ? 'animate-pulse text-indigo-600' : 'group-hover:scale-110 text-indigo-600'} transition-all duration-200`} />
+              <Save className={`h-4 w-4 relative z-10 ${saving ? "animate-pulse text-indigo-600" : "group-hover:scale-110 text-indigo-600"} transition-all duration-200`} />
             </Button>
           )}
         </div>

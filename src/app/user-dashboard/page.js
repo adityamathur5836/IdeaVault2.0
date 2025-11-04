@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { useToast } from '@/components/ui/Toast';
-import PreferencesModal from '@/components/preferences/PreferencesModal';
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Navigation from "@/components/layout/Navigation";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useToast } from "@/components/ui/Toast";
+import PreferencesModal from "@/components/preferences/PreferencesModal";
 import { 
   BarChart3, 
   Plus, 
@@ -30,22 +30,22 @@ import {
   List,
   Wand2,
   Target
-} from 'lucide-react';
+} from "lucide-react";
 import {
   getUserIdeas,
   deleteUserIdea,
   getUserCredits,
   getUserPreferences,
   updateUserIdea
-} from '@/lib/userService';
-import { useDashboard } from '@/contexts/DashboardContext';
+} from "@/lib/userService";
+import { useDashboard } from "@/contexts/DashboardContext";
 
 const statusOptions = [
-  { value: 'all', label: 'All Ideas' },
-  { value: 'saved', label: 'Saved' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'archived', label: 'Archived' }
+  { value: "all", label: "All Ideas" },
+  { value: "saved", label: "Saved" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "completed", label: "Completed" },
+  { value: "archived", label: "Archived" }
 ];
 
 export default function UserDashboardPage() {
@@ -63,15 +63,15 @@ export default function UserDashboardPage() {
   const [credits, setCredits] = useState(null);
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showPreferences, setShowPreferences] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
 
   useEffect(() => {
     if (!isSignedIn) {
-      router.push('/sign-in');
+      router.push("/sign-in");
       return;
     }
     loadDashboardData();
@@ -103,24 +103,24 @@ export default function UserDashboardPage() {
         preferences: preferencesData
       });
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      console.error("Error loading dashboard data:", error);
+      toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteIdea = async (ideaId) => {
-    if (!confirm('Are you sure you want to delete this idea?')) return;
+    if (!confirm("Are you sure you want to delete this idea?")) return;
 
     try {
       await deleteUserIdea(user.id, ideaId);
       setIdeas(prev => prev.filter(idea => idea.id !== ideaId));
       removeIdeaFromDashboard(ideaId);
-      showToast('Idea deleted successfully', 'success');
+      showToast("Idea deleted successfully", "success");
     } catch (error) {
-      console.error('Error deleting idea:', error);
-      showToast('Failed to delete idea', 'error');
+      console.error("Error deleting idea:", error);
+      showToast("Failed to delete idea", "error");
     }
   };
 
@@ -130,16 +130,16 @@ export default function UserDashboardPage() {
       setIdeas(prev => prev.map(idea => 
         idea.id === ideaId ? { ...idea, status: newStatus } : idea
       ));
-      showToast('Idea status updated', 'success');
+      showToast("Idea status updated", "success");
     } catch (error) {
-      console.error('Error updating idea status:', error);
-      showToast('Failed to update idea status', 'error');
+      console.error("Error updating idea status:", error);
+      showToast("Failed to update idea status", "error");
     }
   };
 
   // Filter ideas based on status and search
   const filteredIdeas = ideas.filter(idea => {
-    const matchesStatus = statusFilter === 'all' || idea.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || idea.status === statusFilter;
     const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          idea.description?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -147,9 +147,9 @@ export default function UserDashboardPage() {
 
   // Calculate statistics
   const totalIdeas = ideas.length;
-  const savedIdeas = ideas.filter(idea => idea.status === 'saved').length;
-  const inProgressIdeas = ideas.filter(idea => idea.status === 'in_progress').length;
-  const completedIdeas = ideas.filter(idea => idea.status === 'completed').length;
+  const savedIdeas = ideas.filter(idea => idea.status === "saved").length;
+  const inProgressIdeas = ideas.filter(idea => idea.status === "in_progress").length;
+  const completedIdeas = ideas.filter(idea => idea.status === "completed").length;
   const totalCredits = Number(credits?.total_credits ?? 0);
   const usedCredits = Number(credits?.used_credits ?? 0);
   const computedAvailable = totalCredits - usedCredits;
@@ -157,10 +157,10 @@ export default function UserDashboardPage() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      saved: { color: 'bg-blue-100 text-blue-800', label: 'Saved' },
-      in_progress: { color: 'bg-yellow-100 text-yellow-800', label: 'In Progress' },
-      completed: { color: 'bg-green-100 text-green-800', label: 'Completed' },
-      archived: { color: 'bg-gray-100 text-gray-800', label: 'Archived' }
+      saved: { color: "bg-blue-100 text-blue-800", label: "Saved" },
+      in_progress: { color: "bg-yellow-100 text-yellow-800", label: "In Progress" },
+      completed: { color: "bg-green-100 text-green-800", label: "Completed" },
+      archived: { color: "bg-gray-100 text-gray-800", label: "Archived" }
     };
     const config = statusConfig[status] || statusConfig.saved;
     return (
@@ -334,7 +334,7 @@ export default function UserDashboardPage() {
                 {statusOptions.map(option => (
                   <Button
                     key={option.value}
-                    variant={statusFilter === option.value ? 'default' : 'outline'}
+                    variant={statusFilter === option.value ? "default" : "outline"}
                     size="sm"
                     onClick={() => setStatusFilter(option.value)}
                   >
@@ -353,16 +353,16 @@ export default function UserDashboardPage() {
                 </div>
                 <div className="flex gap-1">
                   <Button
-                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    variant={viewMode === "grid" ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => setViewMode("grid")}
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    variant={viewMode === "list" ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setViewMode('list')}
+                    onClick={() => setViewMode("list")}
                   >
                     <List className="h-4 w-4" />
                   </Button>
@@ -376,15 +376,15 @@ export default function UserDashboardPage() {
                 <CardContent className="p-12 text-center">
                   <Lightbulb className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-slate-900 mb-2">
-                    {statusFilter === 'all' ? 'No ideas yet' : `No ${statusFilter.replace('_', ' ')} ideas`}
+                    {statusFilter === "all" ? "No ideas yet" : `No ${statusFilter.replace("_", " ")} ideas`}
                   </h3>
                   <p className="text-slate-600 mb-4">
-                    {statusFilter === 'all' 
-                      ? 'Start by generating your first business idea'
-                      : `You don't have any ${statusFilter.replace('_', ' ')} ideas`
+                    {statusFilter === "all" 
+                      ? "Start by generating your first business idea"
+                      : `You don"t have any ${statusFilter.replace("_", " ")} ideas`
                     }
                   </p>
-                  {statusFilter === 'all' && (
+                  {statusFilter === "all" && (
                     <div className="flex gap-3 justify-center">
                       <Button onClick={() => setShowGenerateModal(true)}>
                         <Plus className="h-4 w-4 mr-2" />
@@ -401,9 +401,9 @@ export default function UserDashboardPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
-                : 'space-y-4'
+              <div className={viewMode === "grid" 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                : "space-y-4"
               }>
                 {filteredIdeas.map(idea => (
                   <IdeaCard
@@ -448,14 +448,14 @@ function IdeaCard({ idea, viewMode, availableCredits, onDelete, onUpdateStatus, 
 
   const handleUnlockReport = () => {
     if (availableCredits < 1) {
-      alert('Insufficient credits. Please purchase more credits to unlock reports.');
+      alert("Insufficient credits. Please purchase more credits to unlock reports.");
       return;
     }
     // Navigate to idea report page
     window.location.href = `/ideas/${idea.id}/report`;
   };
 
-  if (viewMode === 'list') {
+  if (viewMode === "list") {
     return (
       <Card>
         <CardContent className="p-6">
@@ -552,7 +552,7 @@ function IdeaCard({ idea, viewMode, availableCredits, onDelete, onUpdateStatus, 
             size="sm"
             onClick={handleUnlockReport}
             disabled={availableCredits < 1}
-            title={availableCredits < 1 ? 'Insufficient credits' : 'Unlock full report (1 credit)'}
+            title={availableCredits < 1 ? "Insufficient credits" : "Unlock full report (1 credit)"}
           >
             <Lock className="h-4 w-4" />
           </Button>
@@ -595,7 +595,7 @@ function IdeaCard({ idea, viewMode, availableCredits, onDelete, onUpdateStatus, 
 // GenerateIdeasModal Component
 function GenerateIdeasModal({ onClose, onSuccess }) {
   const [generating, setGenerating] = useState(false);
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState("");
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -606,14 +606,14 @@ function GenerateIdeasModal({ onClose, onSuccess }) {
       // Navigate to generate page with prompt
       window.location.href = `/generate?prompt=${encodeURIComponent(prompt)}`;
     } catch (error) {
-      console.error('Error generating ideas:', error);
+      console.error("Error generating ideas:", error);
     } finally {
       setGenerating(false);
     }
   };
 
   const handleValidateIdea = () => {
-    window.location.href = '/generate?mode=validate';
+    window.location.href = "/generate?mode=validate";
   };
 
   return (
