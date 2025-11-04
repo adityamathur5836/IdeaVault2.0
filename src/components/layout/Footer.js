@@ -1,30 +1,30 @@
-import Link from "next/link";
-import { Lightbulb } from "lucide-react";
+import Link from 'next/link';
+import { Lightbulb } from 'lucide-react';
 
 const footerLinks = {
   product: [
-    { name: "Generate Ideas", href: "/generate" },
-    { name: "Explore Ideas", href: "/explore" },
-    { name: "Community", href: "/community" },
-    { name: "Pricing", href: "/pricing" },
+    { name: 'Generate Ideas', href: '/generate' },
+    { name: 'Explore Ideas', href: '/explore' },
+    { name: 'Community', href: '/community' },
+    { name: 'Pricing', href: '/pricing' },
   ],
   company: [
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
-    { name: "Careers", href: "/careers" },
-    { name: "Contact", href: "/contact" },
+    { name: 'About', href: '/about' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Careers', href: '/careers' },
+    { name: 'Contact', href: '/contact' },
   ],
   support: [
-    { name: "Help Center", href: "/help" },
-    { name: "Documentation", href: "/docs" },
-    { name: "API Reference", href: "/api-docs" },
-    { name: "Status", href: "/status" },
+    { name: 'Help Center', href: '/help' },
+    { name: 'Documentation', href: '/docs' },
+    { name: 'API Reference', href: '/api-docs' },
+    { name: 'Status', href: '/status' },
   ],
   legal: [
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
-    { name: "GDPR", href: "/gdpr" },
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Cookie Policy', href: '/cookies' },
+    { name: 'GDPR', href: '/gdpr' },
   ],
 };
 

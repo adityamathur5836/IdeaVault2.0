@@ -1,20 +1,20 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabaseUserServer } from "@/lib/supabase";
-import crypto from "crypto";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { supabaseUserServer } from '@/lib/supabase';
+import crypto from 'crypto';
 
 /**
  * Create shareable link for report
  */
 export async function POST(request) {
   try {
-    console.log("[Share Report] Creating shareable link");
+    console.log('[Share Report] Creating shareable link');
     
     // Check authentication
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -23,22 +23,22 @@ export async function POST(request) {
     
     if (!ideaId || !reportData || !ideaData) {
       return NextResponse.json(
-        { error: "Missing required fields: ideaId, reportData, ideaData" },
+        { error: 'Missing required fields: ideaId, reportData, ideaData' },
         { status: 400 }
       );
     }
 
     // Generate secure share token
-    const shareToken = crypto.randomBytes(32).toString("hex");
+    const shareToken = crypto.randomBytes(32).toString('hex');
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + expiryDays);
 
-    console.log("[Share Report] Generated token:", shareToken.substring(0, 8) + "...");
+    console.log('[Share Report] Generated token:', shareToken.substring(0, 8) + '...');
 
     try {
       // Store shared report in database
       const { data: sharedReport, error } = await supabaseUserServer
-        .from("shared_reports")
+        .from('shared_reports')
         .insert({
           share_token: shareToken,
           user_id: userId,
@@ -54,10 +54,10 @@ export async function POST(request) {
         .single();
 
       if (error) {
-        console.warn("[Share Report] Database insert failed, using fallback:", error.message);
+        console.warn('[Share Report] Database insert failed, using fallback:', error.message);
         
         // Fallback: Return share link without database storage
-        const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${shareToken}`;
+        const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/share/${shareToken}`;
         
         return NextResponse.json({
           success: true,
@@ -65,13 +65,13 @@ export async function POST(request) {
           shareToken,
           expiresAt: expiryDate.toISOString(),
           fallback: true,
-          message: "Share link created (temporary - not persisted)"
+          message: 'Share link created (temporary - not persisted)'
         });
       }
 
-      const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${shareToken}`;
+      const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/share/${shareToken}`;
 
-      console.log("[Share Report] Share link created successfully");
+      console.log('[Share Report] Share link created successfully');
 
       return NextResponse.json({
         success: true,
@@ -82,10 +82,10 @@ export async function POST(request) {
       });
 
     } catch (dbError) {
-      console.warn("[Share Report] Database operation failed:", dbError.message);
+      console.warn('[Share Report] Database operation failed:', dbError.message);
       
       // Fallback: Create temporary share link
-      const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/share/${shareToken}`;
+      const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/share/${shareToken}`;
       
       return NextResponse.json({
         success: true,
@@ -93,12 +93,12 @@ export async function POST(request) {
         shareToken,
         expiresAt: expiryDate.toISOString(),
         fallback: true,
-        message: "Share link created (temporary - database unavailable)"
+        message: 'Share link created (temporary - database unavailable)'
       });
     }
 
   } catch (error) {
-    console.error("[Share Report] Error:", error);
+    console.error('[Share Report] Error:', error);
     return NextResponse.json(
       { error: `Failed to create share link: ${error.message}` },
       { status: 500 }
@@ -112,30 +112,30 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const shareToken = searchParams.get("token");
+    const shareToken = searchParams.get('token');
 
     if (!shareToken) {
       return NextResponse.json(
-        { error: "Missing share token" },
+        { error: 'Missing share token' },
         { status: 400 }
       );
     }
 
-    console.log("[Share Report] Retrieving shared report:", shareToken.substring(0, 8) + "...");
+    console.log('[Share Report] Retrieving shared report:', shareToken.substring(0, 8) + '...');
 
     try {
       // Get shared report from database
       const { data: sharedReport, error } = await supabaseUserServer
-        .from("shared_reports")
-        .select("*")
-        .eq("share_token", shareToken)
-        .eq("is_active", true)
+        .from('shared_reports')
+        .select('*')
+        .eq('share_token', shareToken)
+        .eq('is_active', true)
         .single();
 
       if (error) {
-        console.warn("[Share Report] Database query failed:", error.message);
+        console.warn('[Share Report] Database query failed:', error.message);
         return NextResponse.json(
-          { error: "Share link not found or expired" },
+          { error: 'Share link not found or expired' },
           { status: 404 }
         );
       }
@@ -145,23 +145,23 @@ export async function GET(request) {
       const expiryDate = new Date(sharedReport.expires_at);
       
       if (now > expiryDate) {
-        console.log("[Share Report] Share link expired");
+        console.log('[Share Report] Share link expired');
         return NextResponse.json(
-          { error: "Share link has expired" },
+          { error: 'Share link has expired' },
           { status: 410 }
         );
       }
 
       // Increment view count
       await supabaseUserServer
-        .from("shared_reports")
+        .from('shared_reports')
         .update({ 
           view_count: (sharedReport.view_count || 0) + 1,
           last_viewed_at: new Date().toISOString()
         })
-        .eq("id", sharedReport.id);
+        .eq('id', sharedReport.id);
 
-      console.log("[Share Report] Shared report retrieved successfully");
+      console.log('[Share Report] Shared report retrieved successfully');
 
       return NextResponse.json({
         success: true,
@@ -173,15 +173,15 @@ export async function GET(request) {
       });
 
     } catch (dbError) {
-      console.warn("[Share Report] Database operation failed:", dbError.message);
+      console.warn('[Share Report] Database operation failed:', dbError.message);
       return NextResponse.json(
-        { error: "Share link not found or database unavailable" },
+        { error: 'Share link not found or database unavailable' },
         { status: 404 }
       );
     }
 
   } catch (error) {
-    console.error("[Share Report] Error:", error);
+    console.error('[Share Report] Error:', error);
     return NextResponse.json(
       { error: `Failed to retrieve shared report: ${error.message}` },
       { status: 500 }
@@ -198,59 +198,59 @@ export async function DELETE(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const shareToken = searchParams.get("token");
+    const shareToken = searchParams.get('token');
 
     if (!shareToken) {
       return NextResponse.json(
-        { error: "Missing share token" },
+        { error: 'Missing share token' },
         { status: 400 }
       );
     }
 
-    console.log("[Share Report] Deactivating share link:", shareToken.substring(0, 8) + "...");
+    console.log('[Share Report] Deactivating share link:', shareToken.substring(0, 8) + '...');
 
     try {
       // Deactivate shared report
       const { error } = await supabaseUserServer
-        .from("shared_reports")
+        .from('shared_reports')
         .update({ 
           is_active: false,
           deactivated_at: new Date().toISOString()
         })
-        .eq("share_token", shareToken)
-        .eq("user_id", userId);
+        .eq('share_token', shareToken)
+        .eq('user_id', userId);
 
       if (error) {
-        console.warn("[Share Report] Database update failed:", error.message);
+        console.warn('[Share Report] Database update failed:', error.message);
         return NextResponse.json(
-          { error: "Failed to deactivate share link" },
+          { error: 'Failed to deactivate share link' },
           { status: 500 }
         );
       }
 
-      console.log("[Share Report] Share link deactivated successfully");
+      console.log('[Share Report] Share link deactivated successfully');
 
       return NextResponse.json({
         success: true,
-        message: "Share link deactivated"
+        message: 'Share link deactivated'
       });
 
     } catch (dbError) {
-      console.warn("[Share Report] Database operation failed:", dbError.message);
+      console.warn('[Share Report] Database operation failed:', dbError.message);
       return NextResponse.json(
-        { error: "Database unavailable" },
+        { error: 'Database unavailable' },
         { status: 503 }
       );
     }
 
   } catch (error) {
-    console.error("[Share Report] Error:", error);
+    console.error('[Share Report] Error:', error);
     return NextResponse.json(
       { error: `Failed to deactivate share link: ${error.message}` },
       { status: 500 }

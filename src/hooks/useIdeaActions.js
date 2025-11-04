@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useDashboardUpdater } from "@/contexts/DashboardContext";
-import { useToast } from "@/components/ui/Toast";
+import { useState } from 'react';
+import { useDashboardUpdater } from '@/contexts/DashboardContext';
+import { useToast } from '@/components/ui/Toast';
 
 export function useIdeaActions() {
   const [loading, setLoading] = useState(false);
@@ -13,17 +13,17 @@ export function useIdeaActions() {
     try {
       setLoading(true);
       
-      const response = await fetch("/api/save-idea", {
-        method: "POST",
+      const response = await fetch('/api/save-idea', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(ideaData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save idea");
+        throw new Error(errorData.error || 'Failed to save idea');
       }
 
       const result = await response.json();
@@ -31,14 +31,14 @@ export function useIdeaActions() {
       if (result.success) {
         // Add the new idea to dashboard immediately
         addIdeaToDashboard(result.idea);
-        toast.success("Idea saved successfully!");
+        toast.success('Idea saved successfully!');
         return result.idea;
       } else {
-        throw new Error(result.error || "Failed to save idea");
+        throw new Error(result.error || 'Failed to save idea');
       }
     } catch (error) {
-      console.error("Error saving idea:", error);
-      toast.error(error.message || "Failed to save idea");
+      console.error('Error saving idea:', error);
+      toast.error(error.message || 'Failed to save idea');
       throw error;
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ export function useIdeaActions() {
           const savedIdea = await saveIdea(ideaData);
           savedIdeas.push(savedIdea);
         } catch (error) {
-          console.error("Error saving individual idea:", error);
+          console.error('Error saving individual idea:', error);
           // Continue with other ideas even if one fails
         }
       }
@@ -68,8 +68,8 @@ export function useIdeaActions() {
       
       return savedIdeas;
     } catch (error) {
-      console.error("Error saving multiple ideas:", error);
-      toast.error("Failed to save ideas");
+      console.error('Error saving multiple ideas:', error);
+      toast.error('Failed to save ideas');
       throw error;
     } finally {
       setLoading(false);
@@ -81,17 +81,17 @@ export function useIdeaActions() {
       setLoading(true);
       
       // Generate ideas
-      const response = await fetch("/api/generate-idea", {
-        method: "POST",
+      const response = await fetch('/api/generate-idea', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(generationParams),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate ideas");
+        throw new Error(errorData.error || 'Failed to generate ideas');
       }
 
       const result = await response.json();
@@ -100,7 +100,7 @@ export function useIdeaActions() {
       const ideas = result.ideas || [result];
       
       if (ideas.length === 0) {
-        throw new Error("No ideas were generated");
+        throw new Error('No ideas were generated');
       }
 
       // Save all generated ideas
@@ -111,15 +111,15 @@ export function useIdeaActions() {
           generation_params: generationParams,
           ai_generated: result.ai_generated || 0,
           database_matched: result.database_matched || 0,
-          source: result.source || "unknown",
-          model: result.model || "gemini-1.5-flash"
+          source: result.source || 'unknown',
+          model: result.model || 'gemini-1.5-flash'
         }
       })));
 
       return savedIdeas;
     } catch (error) {
-      console.error("Error generating and saving ideas:", error);
-      toast.error(error.message || "Failed to generate and save ideas");
+      console.error('Error generating and saving ideas:', error);
+      toast.error(error.message || 'Failed to generate and save ideas');
       throw error;
     } finally {
       setLoading(false);
@@ -130,30 +130,30 @@ export function useIdeaActions() {
     try {
       setLoading(true);
 
-      const response = await fetch("/api/generate-report", {
-        method: "POST",
+      const response = await fetch('/api/generate-report', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ idea }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate business report");
+        throw new Error(errorData.error || 'Failed to generate business report');
       }
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success("Business report generated successfully!");
+        toast.success('Business report generated successfully!');
         return result.report;
       } else {
-        throw new Error(result.error || "Failed to generate business report");
+        throw new Error(result.error || 'Failed to generate business report');
       }
     } catch (error) {
-      console.error("Error generating business report:", error);
-      toast.error(error.message || "Failed to generate business report");
+      console.error('Error generating business report:', error);
+      toast.error(error.message || 'Failed to generate business report');
       throw error;
     } finally {
       setLoading(false);

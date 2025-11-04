@@ -1,46 +1,46 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
-import { Select } from "@/components/ui/Select";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { useToast } from "@/components/ui/Toast";
-import { X, Settings, User, Target, DollarSign, Clock, Users } from "lucide-react";
-import { getUserPreferences, upsertUserPreferences } from "@/lib/userService";
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToast } from '@/components/ui/Toast';
+import { X, Settings, User, Target, DollarSign, Clock, Users } from 'lucide-react';
+import { getUserPreferences, upsertUserPreferences } from '@/lib/userService';
 
 const experienceLevels = [
-  { value: "Beginner", label: "Beginner - New to entrepreneurship" },
-  { value: "Intermediate", label: "Intermediate - Some business experience" },
-  { value: "Expert", label: "Expert - Seasoned entrepreneur" }
+  { value: 'Beginner', label: 'Beginner - New to entrepreneurship' },
+  { value: 'Intermediate', label: 'Intermediate - Some business experience' },
+  { value: 'Expert', label: 'Expert - Seasoned entrepreneur' }
 ];
 
 const timeCommitments = [
-  { value: "Part-time", label: "Part-time - Side project or hobby" },
-  { value: "Full-time", label: "Full-time - Primary focus and career" }
+  { value: 'Part-time', label: 'Part-time - Side project or hobby' },
+  { value: 'Full-time', label: 'Full-time - Primary focus and career' }
 ];
 
 const aiRoles = [
-  { value: "advisor", label: "Strategic Advisor - High-level guidance" },
-  { value: "mentor", label: "Mentor - Step-by-step coaching" },
-  { value: "analyst", label: "Market Analyst - Data-driven insights" },
-  { value: "creative", label: "Creative Partner - Innovative brainstorming" },
-  { value: "validator", label: "Idea Validator - Critical evaluation" }
+  { value: 'advisor', label: 'Strategic Advisor - High-level guidance' },
+  { value: 'mentor', label: 'Mentor - Step-by-step coaching' },
+  { value: 'analyst', label: 'Market Analyst - Data-driven insights' },
+  { value: 'creative', label: 'Creative Partner - Innovative brainstorming' },
+  { value: 'validator', label: 'Idea Validator - Critical evaluation' }
 ];
 
 const targetAudiences = [
-  { value: "consumers", label: "General Consumers" },
-  { value: "small_business", label: "Small Businesses" },
-  { value: "enterprise", label: "Enterprise/Large Companies" },
-  { value: "developers", label: "Developers/Technical Users" },
-  { value: "students", label: "Students/Educational" },
-  { value: "healthcare", label: "Healthcare Professionals" },
-  { value: "finance", label: "Financial Services" },
-  { value: "nonprofits", label: "Non-profits/NGOs" },
-  { value: "government", label: "Government/Public Sector" },
-  { value: "seniors", label: "Senior Citizens" }
+  { value: 'consumers', label: 'General Consumers' },
+  { value: 'small_business', label: 'Small Businesses' },
+  { value: 'enterprise', label: 'Enterprise/Large Companies' },
+  { value: 'developers', label: 'Developers/Technical Users' },
+  { value: 'students', label: 'Students/Educational' },
+  { value: 'healthcare', label: 'Healthcare Professionals' },
+  { value: 'finance', label: 'Financial Services' },
+  { value: 'nonprofits', label: 'Non-profits/NGOs' },
+  { value: 'government', label: 'Government/Public Sector' },
+  { value: 'seniors', label: 'Senior Citizens' }
 ];
 
 export default function PreferencesModal({ isOpen, onClose }) {
@@ -50,11 +50,11 @@ export default function PreferencesModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [preferences, setPreferences] = useState({
-    interests: "",
-    experience_level: "Beginner",
-    time_commitment: "Part-time",
-    capital_available: "",
-    preferred_ai_role: "advisor",
+    interests: '',
+    experience_level: 'Beginner',
+    time_commitment: 'Part-time',
+    capital_available: '',
+    preferred_ai_role: 'advisor',
     target_audience: []
   });
 
@@ -70,17 +70,17 @@ export default function PreferencesModal({ isOpen, onClose }) {
       const data = await getUserPreferences(user.id);
       if (data) {
         setPreferences({
-          interests: data.interests || "",
-          experience_level: data.experience_level || "Beginner",
-          time_commitment: data.time_commitment || "Part-time",
-          capital_available: data.capital_available || "",
-          preferred_ai_role: data.preferred_ai_role || "advisor",
+          interests: data.interests || '',
+          experience_level: data.experience_level || 'Beginner',
+          time_commitment: data.time_commitment || 'Part-time',
+          capital_available: data.capital_available || '',
+          preferred_ai_role: data.preferred_ai_role || 'advisor',
           target_audience: data.target_audience || []
         });
       }
     } catch (error) {
-      console.error("Error loading preferences:", error);
-      showToast("Failed to load preferences", "error");
+      console.error('Error loading preferences:', error);
+      showToast('Failed to load preferences', 'error');
     } finally {
       setLoading(false);
     }
@@ -92,11 +92,11 @@ export default function PreferencesModal({ isOpen, onClose }) {
     try {
       setSaving(true);
       await upsertUserPreferences(user.id, preferences);
-      showToast("Preferences saved successfully", "success");
+      showToast('Preferences saved successfully', 'success');
       onClose();
     } catch (error) {
-      console.error("Error saving preferences:", error);
-      showToast("Failed to save preferences", "error");
+      console.error('Error saving preferences:', error);
+      showToast('Failed to save preferences', 'error');
     } finally {
       setSaving(false);
     }
@@ -262,7 +262,7 @@ export default function PreferencesModal({ isOpen, onClose }) {
                       Saving...
                     </>
                   ) : (
-                    "Save Preferences"
+                    'Save Preferences'
                   )}
                 </Button>
               </div>

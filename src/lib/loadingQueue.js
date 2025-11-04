@@ -22,7 +22,7 @@ class LoadingQueue {
    * Add operation to queue with debouncing
    */
   async addOperation(key, operation, options = {}) {
-    const { debounce = true, priority = "normal" } = options;
+    const { debounce = true, priority = 'normal' } = options;
 
     // Clear existing debounce timer
     if (debounce && debounceTimers.has(key)) {
@@ -33,7 +33,7 @@ class LoadingQueue {
       try {
         // Mark as processing
         this.processing.add(key);
-        loadingStates.set(key, { status: "loading", startTime: Date.now() });
+        loadingStates.set(key, { status: 'loading', startTime: Date.now() });
 
         // Execute operation
         const result = await operation();
@@ -42,11 +42,11 @@ class LoadingQueue {
         this.results.set(key, {
           data: result,
           timestamp: Date.now(),
-          status: "success"
+          status: 'success'
         });
 
         loadingStates.set(key, { 
-          status: "success", 
+          status: 'success', 
           duration: Date.now() - loadingStates.get(key).startTime 
         });
 
@@ -56,11 +56,11 @@ class LoadingQueue {
         this.results.set(key, {
           error,
           timestamp: Date.now(),
-          status: "error"
+          status: 'error'
         });
 
         loadingStates.set(key, { 
-          status: "error", 
+          status: 'error', 
           error: error.message,
           duration: Date.now() - loadingStates.get(key).startTime 
         });
@@ -150,17 +150,17 @@ export function useLoadingQueue() {
   const addOperation = useCallback(async (key, operation, options = {}) => {
     try {
       // Update local state
-      setLoadingStates(prev => new Map(prev.set(key, { status: "loading" })));
+      setLoadingStates(prev => new Map(prev.set(key, { status: 'loading' })));
       
       const result = await globalLoadingQueue.addOperation(key, operation, options);
       
       // Update success state
-      setLoadingStates(prev => new Map(prev.set(key, { status: "success" })));
+      setLoadingStates(prev => new Map(prev.set(key, { status: 'success' })));
       
       return result;
     } catch (error) {
       // Update error state
-      setLoadingStates(prev => new Map(prev.set(key, { status: "error", error: error.message })));
+      setLoadingStates(prev => new Map(prev.set(key, { status: 'error', error: error.message })));
       throw error;
     }
   }, []);
@@ -171,7 +171,7 @@ export function useLoadingQueue() {
 
   const isLoading = useCallback((key) => {
     const state = getLoadingState(key);
-    return state?.status === "loading";
+    return state?.status === 'loading';
   }, [getLoadingState]);
 
   const clearOperation = useCallback((key) => {
@@ -200,10 +200,10 @@ export function createOptimisticUpdate(key, optimisticData) {
   globalLoadingQueue.results.set(key, {
     data: optimisticData,
     timestamp: Date.now(),
-    status: "optimistic"
+    status: 'optimistic'
   });
 
-  loadingStates.set(key, { status: "optimistic" });
+  loadingStates.set(key, { status: 'optimistic' });
 }
 
 /**

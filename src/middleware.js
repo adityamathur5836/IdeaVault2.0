@@ -22,7 +22,7 @@ const isPublicRoute = createRouteMatcher([
   "/blog/(.*)",
 ]);
 
-// Define ignored routes (middleware won"t run here)
+// Define ignored routes (middleware won't run here)
 const isIgnoredRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/_next(.*)",

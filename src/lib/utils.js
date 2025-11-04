@@ -74,10 +74,10 @@ export function capitalizeFirst(str) {
 }
 
 export function parseErrorMessage(error) {
-  if (typeof error === "string") return error;
+  if (typeof error === 'string') return error;
   if (error?.message) return error.message;
   if (error?.error?.message) return error.error.message;
-  return "An unexpected error occurred";
+  return 'An unexpected error occurred';
 }
 
 export function generateId() {

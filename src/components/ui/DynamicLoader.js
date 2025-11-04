@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/Card';
 import { 
   Loader2, 
   Brain, 
@@ -11,18 +11,18 @@ import {
   CheckCircle,
   Clock,
   Zap
-} from "lucide-react";
+} from 'lucide-react';
 
 /**
  * Dynamic loader with progress steps and estimated time
  */
 export function DynamicLoader({ 
-  type = "idea", // "idea" or "report"
+  type = 'idea', // 'idea' or 'report'
   steps = [],
   currentStep = 0,
   estimatedTime = 30,
   onComplete = null,
-  className = ""
+  className = ''
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -30,17 +30,17 @@ export function DynamicLoader({
   // Default steps for different types
   const defaultSteps = {
     idea: [
-      { id: "search", label: "Searching similar ideas", icon: Database, duration: 5 },
-      { id: "analyze", label: "Analyzing market trends", icon: Brain, duration: 8 },
-      { id: "generate", label: "Generating unique concepts", icon: Sparkles, duration: 12 },
-      { id: "refine", label: "Refining and formatting", icon: Zap, duration: 5 }
+      { id: 'search', label: 'Searching similar ideas', icon: Database, duration: 5 },
+      { id: 'analyze', label: 'Analyzing market trends', icon: Brain, duration: 8 },
+      { id: 'generate', label: 'Generating unique concepts', icon: Sparkles, duration: 12 },
+      { id: 'refine', label: 'Refining and formatting', icon: Zap, duration: 5 }
     ],
     report: [
-      { id: "fetch", label: "Loading idea data", icon: Database, duration: 3 },
-      { id: "analyze", label: "Analyzing business concept", icon: Brain, duration: 10 },
-      { id: "market", label: "Researching market intelligence", icon: FileText, duration: 12 },
-      { id: "strategy", label: "Developing product strategy", icon: Sparkles, duration: 10 },
-      { id: "finalize", label: "Finalizing report sections", icon: CheckCircle, duration: 5 }
+      { id: 'fetch', label: 'Loading idea data', icon: Database, duration: 3 },
+      { id: 'analyze', label: 'Analyzing business concept', icon: Brain, duration: 10 },
+      { id: 'market', label: 'Researching market intelligence', icon: FileText, duration: 12 },
+      { id: 'strategy', label: 'Developing product strategy', icon: Sparkles, duration: 10 },
+      { id: 'finalize', label: 'Finalizing report sections', icon: CheckCircle, duration: 5 }
     ]
   };
 
@@ -108,7 +108,7 @@ export function DynamicLoader({
             </div>
           </div>
           <h3 className="text-lg font-semibold text-slate-900 mb-1">
-            {type === "idea" ? "Generating Ideas" : "Creating Report"}
+            {type === 'idea' ? 'Generating Ideas' : 'Creating Report'}
           </h3>
           <p className="text-sm text-slate-600">
             AI is working on your request...
@@ -152,18 +152,18 @@ export function DynamicLoader({
                 key={step.id}
                 className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
                   isActive 
-                    ? "bg-indigo-50 border border-indigo-200" 
+                    ? 'bg-indigo-50 border border-indigo-200' 
                     : isCompleted 
-                      ? "bg-green-50 border border-green-200" 
-                      : "bg-slate-50 border border-slate-200"
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-slate-50 border border-slate-200'
                 }`}
               >
                 <div className={`flex-shrink-0 ${
                   isActive 
-                    ? "text-indigo-600" 
+                    ? 'text-indigo-600' 
                     : isCompleted 
-                      ? "text-green-600" 
-                      : "text-slate-400"
+                      ? 'text-green-600' 
+                      : 'text-slate-400'
                 }`}>
                   {isCompleted ? (
                     <CheckCircle className="h-5 w-5" />
@@ -177,10 +177,10 @@ export function DynamicLoader({
                 <div className="flex-1">
                   <p className={`text-sm font-medium ${
                     isActive 
-                      ? "text-indigo-900" 
+                      ? 'text-indigo-900' 
                       : isCompleted 
-                        ? "text-green-900" 
-                        : "text-slate-600"
+                        ? 'text-green-900' 
+                        : 'text-slate-600'
                   }`}>
                     {step.label}
                   </p>
@@ -205,9 +205,9 @@ export function DynamicLoader({
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-xs text-slate-500">
-            {type === "idea" 
-              ? "Generating unique ideas based on your preferences..." 
-              : "Creating comprehensive business analysis..."}
+            {type === 'idea' 
+              ? 'Generating unique ideas based on your preferences...' 
+              : 'Creating comprehensive business analysis...'}
           </p>
         </div>
       </CardContent>
@@ -218,7 +218,7 @@ export function DynamicLoader({
 /**
  * Simple loading spinner with message
  */
-export function SimpleLoader({ message = "Loading...", className = "" }) {
+export function SimpleLoader({ message = 'Loading...', className = '' }) {
   return (
     <div className={`flex items-center justify-center p-8 ${className}`}>
       <div className="text-center">
@@ -232,12 +232,12 @@ export function SimpleLoader({ message = "Loading...", className = "" }) {
 /**
  * Inline loader for buttons
  */
-export function InlineLoader({ size = "sm", className = "" }) {
+export function InlineLoader({ size = 'sm', className = '' }) {
   const sizeClasses = {
-    xs: "h-3 w-3",
-    sm: "h-4 w-4",
-    md: "h-5 w-5",
-    lg: "h-6 w-6"
+    xs: 'h-3 w-3',
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6'
   };
 
   return (

@@ -9,10 +9,10 @@
  */
 export function getDifficultyVariant(difficulty) {
   switch (difficulty?.toLowerCase()) {
-    case "easy": return "easy";
-    case "medium": return "medium";
-    case "hard": return "hard";
-    default: return "default";
+    case 'easy': return 'easy';
+    case 'medium': return 'medium';
+    case 'hard': return 'hard';
+    default: return 'default';
   }
 }
 
@@ -23,31 +23,31 @@ export function getDifficultyVariant(difficulty) {
  */
 export function getCategoryVariant(category) {
   const categoryMap = {
-    "productivity": "productivity",
-    "health": "health",
-    "finance": "finance",
-    "education": "education",
-    "entertainment": "entertainment",
-    "social": "social",
-    "business": "business",
-    "technology": "technology",
-    "e-commerce": "business",
-    "saas": "technology",
-    "mobile app": "technology",
-    "web app": "technology",
-    "ai/ml": "technology",
-    "blockchain": "technology",
-    "iot": "technology",
-    "gaming": "entertainment",
-    "media": "entertainment",
-    "travel": "social",
-    "food & beverage": "business",
-    "real estate": "business",
-    "automotive": "business",
-    "fashion": "business",
-    "sports & fitness": "health"
+    'productivity': 'productivity',
+    'health': 'health',
+    'finance': 'finance',
+    'education': 'education',
+    'entertainment': 'entertainment',
+    'social': 'social',
+    'business': 'business',
+    'technology': 'technology',
+    'e-commerce': 'business',
+    'saas': 'technology',
+    'mobile app': 'technology',
+    'web app': 'technology',
+    'ai/ml': 'technology',
+    'blockchain': 'technology',
+    'iot': 'technology',
+    'gaming': 'entertainment',
+    'media': 'entertainment',
+    'travel': 'social',
+    'food & beverage': 'business',
+    'real estate': 'business',
+    'automotive': 'business',
+    'fashion': 'business',
+    'sports & fitness': 'health'
   };
-  return categoryMap[category?.toLowerCase()] || "default";
+  return categoryMap[category?.toLowerCase()] || 'default';
 }
 
 /**
@@ -57,11 +57,11 @@ export function getCategoryVariant(category) {
  */
 export function getStatusVariant(status) {
   switch (status?.toLowerCase()) {
-    case "saved": return "default";
-    case "in_progress": return "warning";
-    case "completed": return "success";
-    case "archived": return "outline";
-    default: return "default";
+    case 'saved': return 'default';
+    case 'in_progress': return 'warning';
+    case 'completed': return 'success';
+    case 'archived': return 'outline';
+    default: return 'default';
   }
 }
 
@@ -72,10 +72,10 @@ export function getStatusVariant(status) {
  */
 export function getSourceVariant(source) {
   switch (source?.toLowerCase()) {
-    case "gemini_synthesis": return "ai";
-    case "database": return "database";
-    case "database_match": return "database";
-    default: return "outline";
+    case 'gemini_synthesis': return 'ai';
+    case 'database': return 'database';
+    case 'database_match': return 'database';
+    default: return 'outline';
   }
 }
 
@@ -86,10 +86,10 @@ export function getSourceVariant(source) {
  */
 export function getDifficultyText(difficulty) {
   switch (difficulty?.toLowerCase()) {
-    case "easy": return "Easy";
-    case "medium": return "Medium";
-    case "hard": return "Hard";
-    default: return difficulty || "Unknown";
+    case 'easy': return 'Easy';
+    case 'medium': return 'Medium';
+    case 'hard': return 'Hard';
+    default: return difficulty || 'Unknown';
   }
 }
 
@@ -100,11 +100,11 @@ export function getDifficultyText(difficulty) {
  */
 export function getStatusText(status) {
   switch (status?.toLowerCase()) {
-    case "saved": return "Saved";
-    case "in_progress": return "In Progress";
-    case "completed": return "Completed";
-    case "archived": return "Archived";
-    default: return status || "Unknown";
+    case 'saved': return 'Saved';
+    case 'in_progress': return 'In Progress';
+    case 'completed': return 'Completed';
+    case 'archived': return 'Archived';
+    default: return status || 'Unknown';
   }
 }
 
@@ -115,10 +115,10 @@ export function getStatusText(status) {
  */
 export function getSourceText(source) {
   switch (source?.toLowerCase()) {
-    case "gemini_synthesis": return "AI Generated";
-    case "database": return "Database Match";
-    case "database_match": return "Database Match";
-    default: return source || "Unknown";
+    case 'gemini_synthesis': return 'AI Generated';
+    case 'database': return 'Database Match';
+    case 'database_match': return 'Database Match';
+    default: return source || 'Unknown';
   }
 }
 
@@ -128,32 +128,32 @@ export function getSourceText(source) {
  * @returns {string} Normalized category name
  */
 export function normalizeCategory(category) {
-  if (!category) return "Other";
+  if (!category) return 'Other';
   
   const normalized = category.toLowerCase().trim();
   const categoryMappings = {
-    "ai": "AI/ML",
-    "ml": "AI/ML",
-    "artificial intelligence": "AI/ML",
-    "machine learning": "AI/ML",
-    "saas": "SaaS",
-    "software as a service": "SaaS",
-    "ecommerce": "E-commerce",
-    "e-commerce": "E-commerce",
-    "online store": "E-commerce",
-    "mobile": "Mobile App",
-    "mobile application": "Mobile App",
-    "web": "Web App",
-    "web application": "Web App",
-    "webapp": "Web App",
-    "fintech": "Finance",
-    "financial technology": "Finance",
-    "edtech": "Education",
-    "educational technology": "Education",
-    "healthtech": "Health",
-    "health technology": "Health",
-    "medtech": "Health",
-    "medical technology": "Health"
+    'ai': 'AI/ML',
+    'ml': 'AI/ML',
+    'artificial intelligence': 'AI/ML',
+    'machine learning': 'AI/ML',
+    'saas': 'SaaS',
+    'software as a service': 'SaaS',
+    'ecommerce': 'E-commerce',
+    'e-commerce': 'E-commerce',
+    'online store': 'E-commerce',
+    'mobile': 'Mobile App',
+    'mobile application': 'Mobile App',
+    'web': 'Web App',
+    'web application': 'Web App',
+    'webapp': 'Web App',
+    'fintech': 'Finance',
+    'financial technology': 'Finance',
+    'edtech': 'Education',
+    'educational technology': 'Education',
+    'healthtech': 'Health',
+    'health technology': 'Health',
+    'medtech': 'Health',
+    'medical technology': 'Health'
   };
   
   return categoryMappings[normalized] || category;
@@ -166,32 +166,32 @@ export function normalizeCategory(category) {
  */
 export function getCategoryIcon(category) {
   const iconMap = {
-    "productivity": "Zap",
-    "health": "Heart",
-    "finance": "DollarSign",
-    "education": "GraduationCap",
-    "entertainment": "Play",
-    "social": "Users",
-    "business": "Briefcase",
-    "technology": "Cpu",
-    "e-commerce": "ShoppingCart",
-    "saas": "Cloud",
-    "mobile app": "Smartphone",
-    "web app": "Globe",
-    "ai/ml": "Brain",
-    "blockchain": "Link",
-    "iot": "Wifi",
-    "gaming": "Gamepad2",
-    "media": "Camera",
-    "travel": "MapPin",
-    "food & beverage": "Coffee",
-    "real estate": "Home",
-    "automotive": "Car",
-    "fashion": "Shirt",
-    "sports & fitness": "Dumbbell"
+    'productivity': 'Zap',
+    'health': 'Heart',
+    'finance': 'DollarSign',
+    'education': 'GraduationCap',
+    'entertainment': 'Play',
+    'social': 'Users',
+    'business': 'Briefcase',
+    'technology': 'Cpu',
+    'e-commerce': 'ShoppingCart',
+    'saas': 'Cloud',
+    'mobile app': 'Smartphone',
+    'web app': 'Globe',
+    'ai/ml': 'Brain',
+    'blockchain': 'Link',
+    'iot': 'Wifi',
+    'gaming': 'Gamepad2',
+    'media': 'Camera',
+    'travel': 'MapPin',
+    'food & beverage': 'Coffee',
+    'real estate': 'Home',
+    'automotive': 'Car',
+    'fashion': 'Shirt',
+    'sports & fitness': 'Dumbbell'
   };
   
-  return iconMap[category?.toLowerCase()] || "Target";
+  return iconMap[category?.toLowerCase()] || 'Target';
 }
 
 /**
@@ -201,10 +201,10 @@ export function getCategoryIcon(category) {
  */
 export function getDifficultyIcon(difficulty) {
   switch (difficulty?.toLowerCase()) {
-    case "easy": return "TrendingUp";
-    case "medium": return "BarChart3";
-    case "hard": return "Mountain";
-    default: return "TrendingUp";
+    case 'easy': return 'TrendingUp';
+    case 'medium': return 'BarChart3';
+    case 'hard': return 'Mountain';
+    default: return 'TrendingUp';
   }
 }
 
@@ -215,9 +215,9 @@ export function getDifficultyIcon(difficulty) {
  */
 export function getSourceIcon(source) {
   switch (source?.toLowerCase()) {
-    case "gemini_synthesis": return "Sparkles";
-    case "database": return "Database";
-    case "database_match": return "Database";
-    default: return "FileText";
+    case 'gemini_synthesis': return 'Sparkles';
+    case 'database': return 'Database';
+    case 'database_match': return 'Database';
+    default: return 'FileText';
   }
 }

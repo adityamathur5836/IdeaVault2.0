@@ -1,8 +1,8 @@
-import Head from "next/head";
-import Navigation from "./Navigation";
-import Footer from "./Footer";
-import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import { ToastProvider } from "@/components/ui/Toast";
+import Head from 'next/head';
+import Navigation from './Navigation';
+import Footer from './Footer';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { ToastProvider } from '@/components/ui/Toast';
 
 export default function Layout({ 
   children, 

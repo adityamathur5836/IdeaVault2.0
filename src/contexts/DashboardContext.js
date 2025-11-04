@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from 'react';
 
 const DashboardContext = createContext();
 
@@ -80,7 +80,7 @@ export function DashboardProvider({ children }) {
 export function useDashboard() {
   const context = useContext(DashboardContext);
   if (!context) {
-    throw new Error("useDashboard must be used within a DashboardProvider");
+    throw new Error('useDashboard must be used within a DashboardProvider');
   }
   return context;
 }

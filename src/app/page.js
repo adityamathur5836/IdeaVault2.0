@@ -1,7 +1,7 @@
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
-import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import {
   Lightbulb,
   Search,
@@ -12,7 +12,7 @@ import {
   Target,
   ArrowRight,
   CheckCircle
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function Home() {
   return (

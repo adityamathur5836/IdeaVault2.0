@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { cn } from "@/lib/utils";
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
@@ -30,7 +30,7 @@ export function ToastProvider({ children }) {
   const toast = useCallback((message, options = {}) => {
     return addToast({
       message,
-      type: "default",
+      type: 'default',
       ...options,
     });
   }, [addToast]);
@@ -38,7 +38,7 @@ export function ToastProvider({ children }) {
   toast.success = useCallback((message, options = {}) => {
     return addToast({
       message,
-      type: "success",
+      type: 'success',
       ...options,
     });
   }, [addToast]);
@@ -46,7 +46,7 @@ export function ToastProvider({ children }) {
   toast.error = useCallback((message, options = {}) => {
     return addToast({
       message,
-      type: "error",
+      type: 'error',
       ...options,
     });
   }, [addToast]);
@@ -54,7 +54,7 @@ export function ToastProvider({ children }) {
   toast.warning = useCallback((message, options = {}) => {
     return addToast({
       message,
-      type: "warning",
+      type: 'warning',
       ...options,
     });
   }, [addToast]);
@@ -62,7 +62,7 @@ export function ToastProvider({ children }) {
   toast.info = useCallback((message, options = {}) => {
     return addToast({
       message,
-      type: "info",
+      type: 'info',
       ...options,
     });
   }, [addToast]);
@@ -78,7 +78,7 @@ export function ToastProvider({ children }) {
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error("useToast must be used within a ToastProvider");
+    throw new Error('useToast must be used within a ToastProvider');
   }
   return context;
 }

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { LoadingSpinner, LoadingPage } from "@/components/ui/LoadingSpinner";
-import { useToast } from "@/components/ui/Toast";
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { LoadingSpinner, LoadingPage } from '@/components/ui/LoadingSpinner';
+import { useToast } from '@/components/ui/Toast';
 import { 
   Search, 
   Filter, 
@@ -22,30 +22,30 @@ import {
   Bookmark,
   ExternalLink,
   RefreshCw
-} from "lucide-react";
+} from 'lucide-react';
 
 const categories = [
-  "All Categories",
-  "Technology",
-  "Healthcare",
-  "Education",
-  "Finance",
-  "E-commerce",
-  "Food & Beverage",
-  "Travel & Tourism",
-  "Entertainment",
-  "Real Estate",
-  "Sustainability",
-  "Fashion",
-  "Sports & Fitness",
-  "Other"
+  'All Categories',
+  'Technology',
+  'Healthcare',
+  'Education',
+  'Finance',
+  'E-commerce',
+  'Food & Beverage',
+  'Travel & Tourism',
+  'Entertainment',
+  'Real Estate',
+  'Sustainability',
+  'Fashion',
+  'Sports & Fitness',
+  'Other'
 ];
 
 const difficulties = [
-  { value: "", label: "All Difficulties" },
-  { value: "easy", label: "Easy" },
-  { value: "medium", label: "Medium" },
-  { value: "hard", label: "Hard" }
+  { value: '', label: 'All Difficulties' },
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' }
 ];
 
 export default function ExplorePage() {
@@ -56,9 +56,9 @@ export default function ExplorePage() {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -68,23 +68,23 @@ export default function ExplorePage() {
     loadIdeas();
   }, []);
 
-  const loadIdeas = async (page = 1, search = "", category = "", difficulty = "") => {
+  const loadIdeas = async (page = 1, search = '', category = '', difficulty = '') => {
     try {
       setSearchLoading(page === 1);
       
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: "12"
+        limit: '12'
       });
       
-      if (search) params.append("search", search);
-      if (category && category !== "All Categories") params.append("category", category);
-      if (difficulty) params.append("difficulty", difficulty);
+      if (search) params.append('search', search);
+      if (category && category !== 'All Categories') params.append('category', category);
+      if (difficulty) params.append('difficulty', difficulty);
 
       const response = await fetch(`/api/ideas/explore?${params}`);
       
       if (!response.ok) {
-        throw new Error("Failed to load ideas");
+        throw new Error('Failed to load ideas');
       }
 
       const data = await response.json();
@@ -99,8 +99,8 @@ export default function ExplorePage() {
       setTotalPages(data.totalPages);
       
     } catch (error) {
-      console.error("Error loading ideas:", error);
-      toast.error("Failed to load ideas. Please try again.");
+      console.error('Error loading ideas:', error);
+      toast.error('Failed to load ideas. Please try again.');
     } finally {
       setLoading(false);
       setSearchLoading(false);
@@ -125,15 +125,15 @@ export default function ExplorePage() {
 
   const saveIdea = async (idea) => {
     if (!isSignedIn) {
-      toast.error("Please sign in to save ideas");
+      toast.error('Please sign in to save ideas');
       return;
     }
 
     try {
-      const response = await fetch("/api/save-idea", {
-        method: "POST",
+      const response = await fetch('/api/save-idea', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...idea,
@@ -143,14 +143,14 @@ export default function ExplorePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save idea");
+        throw new Error('Failed to save idea');
       }
 
-      toast.success("Idea saved to your dashboard!");
+      toast.success('Idea saved to your dashboard!');
       
     } catch (error) {
-      console.error("Error saving idea:", error);
-      toast.error("Failed to save idea. Please try again.");
+      console.error('Error saving idea:', error);
+      toast.error('Failed to save idea. Please try again.');
     }
   };
 
@@ -182,7 +182,7 @@ export default function ExplorePage() {
                   placeholder="Search for business ideas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-10"
                 />
               </div>
@@ -206,7 +206,7 @@ export default function ExplorePage() {
           </div>
 
           {/* Filters */}
-          <div className={`mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 ${showFilters ? "block" : "hidden lg:grid"}`}>
+          <div className={`mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 ${showFilters ? 'block' : 'hidden lg:grid'}`}>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Category
@@ -256,9 +256,9 @@ export default function ExplorePage() {
             <Button
               variant="outline"
               onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("All Categories");
-                setSelectedDifficulty("");
+                setSearchQuery('');
+                setSelectedCategory('All Categories');
+                setSelectedDifficulty('');
                 loadIdeas(1);
               }}
               className="mt-4"

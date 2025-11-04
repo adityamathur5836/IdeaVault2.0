@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { searchSimilarIdeas, searchByCategory, getRandomIdeas } from "@/lib/vectorSearch";
-import { synthesizeIdeasWithGemini, generateSearchQuery } from "@/lib/geminiService";
-import { saveUserIdea } from "@/lib/userService";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { searchSimilarIdeas, searchByCategory, getRandomIdeas } from '@/lib/vectorSearch';
+import { synthesizeIdeasWithGemini, generateSearchQuery } from '@/lib/geminiService';
+import { saveUserIdea } from '@/lib/userService';
 
 export async function POST(request) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -21,17 +21,17 @@ export async function POST(request) {
     // Validate count for multiple generation
     if (multiple && (count < 1 || count > 10)) {
       return NextResponse.json(
-        { error: "Count must be between 1 and 10 for multiple generation" },
+        { error: 'Count must be between 1 and 10 for multiple generation' },
         { status: 400 }
       );
     }
 
     // Process input based on type
-    if (type === "structured") {
+    if (type === 'structured') {
       // Validate required fields
       if (!data.category || !data.difficulty || !data.targetAudience) {
         return NextResponse.json(
-          { error: "Missing required fields: category, difficulty, targetAudience" },
+          { error: 'Missing required fields: category, difficulty, targetAudience' },
           { status: 400 }
         );
       }
@@ -92,7 +92,7 @@ export async function POST(request) {
           });
           savedIdeas.push(savedIdea);
         } catch (error) {
-          console.warn("Failed to save idea to database, using in-memory version:", error);
+          console.warn('Failed to save idea to database, using in-memory version:', error);
           // If saving fails, use the idea with generated ID
           savedIdeas.push(ideaWithId);
         }
@@ -102,20 +102,20 @@ export async function POST(request) {
         return NextResponse.json({
           ideas: savedIdeas,
           total: finalIdeas.length,
-          source: "hybrid_vector_gemini",
+          source: 'hybrid_vector_gemini',
           ai_generated: synthesizedIdeas.length,
           database_matched: ideas.length,
-          model: "gemini-1.5-flash"
+          model: 'gemini-1.5-flash'
         });
       } else {
         return NextResponse.json(savedIdeas[0] || generateFallbackIdea(data));
       }
 
-    } else if (type === "freeform") {
+    } else if (type === 'freeform') {
       // Validate prompt
       if (!prompt || prompt.trim().length === 0) {
         return NextResponse.json(
-          { error: "Prompt is required for freeform generation" },
+          { error: 'Prompt is required for freeform generation' },
           { status: 400 }
         );
       }
@@ -168,7 +168,7 @@ export async function POST(request) {
           });
           savedIdeas.push(savedIdea);
         } catch (error) {
-          console.warn("Failed to save idea to database, using in-memory version:", error);
+          console.warn('Failed to save idea to database, using in-memory version:', error);
           // If saving fails, use the idea with generated ID
           savedIdeas.push(ideaWithId);
         }
@@ -178,11 +178,11 @@ export async function POST(request) {
         return NextResponse.json({
           ideas: savedIdeas,
           total: finalIdeas.length,
-          source: "hybrid_vector_gemini",
+          source: 'hybrid_vector_gemini',
           prompt: prompt,
           ai_generated: synthesizedIdeas.length,
           database_matched: ideas.length,
-          model: "gemini-1.5-flash"
+          model: 'gemini-1.5-flash'
         });
       } else {
         return NextResponse.json(savedIdeas[0] || generateFallbackIdeaFromPrompt(prompt));
@@ -190,15 +190,15 @@ export async function POST(request) {
 
     } else {
       return NextResponse.json(
-        { error: "Invalid type. Must be "structured" or "freeform"" },
+        { error: 'Invalid type. Must be "structured" or "freeform"' },
         { status: 400 }
       );
     }
 
   } catch (error) {
-    console.error("Error generating idea:", error);
+    console.error('Error generating idea:', error);
     return NextResponse.json(
-      { error: "Failed to generate idea. Please try again." },
+      { error: 'Failed to generate idea. Please try again.' },
       { status: 500 }
     );
   }
@@ -206,7 +206,7 @@ export async function POST(request) {
 
 export async function GET() {
   return NextResponse.json(
-    { error: "Method not allowed. Use POST." },
+    { error: 'Method not allowed. Use POST.' },
     { status: 405 }
   );
 }
@@ -219,7 +219,7 @@ export async function GET() {
 function removeDuplicates(ideas) {
   const seen = new Set();
   return ideas.filter(idea => {
-    const key = idea.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const key = idea.title.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (seen.has(key)) {
       return false;
     }
@@ -269,7 +269,7 @@ function calculateRelevanceScore(idea, data) {
  * Enhance ideas with prompt context for freeform generation
  */
 function enhanceWithPromptContext(ideas, prompt) {
-  const keywords = prompt.toLowerCase().split(" ").filter(word => word.length > 3);
+  const keywords = prompt.toLowerCase().split(' ').filter(word => word.length > 3);
 
   return ideas.map(idea => ({
     ...idea,
@@ -291,7 +291,7 @@ function calculatePromptRelevance(idea, keywords) {
  * Enhance description with prompt context
  */
 function enhanceDescription(description, prompt) {
-  return `${description}\n\nThis idea aligns with your request: "${prompt.substring(0, 100)}${prompt.length > 100 ? "..." : ""}"`;
+  return `${description}\n\nThis idea aligns with your request: "${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}"`;
 }
 
 /**
@@ -305,7 +305,7 @@ function generateFallbackIdea(data) {
     difficulty: data.difficulty,
     target_audience: data.targetAudience,
     tags: [data.category, data.targetAudience, data.difficulty, "Innovation"],
-    source: "fallback",
+    source: 'fallback',
     upvotes: 0,
     similarity: 0.3
   };
@@ -315,8 +315,8 @@ function generateFallbackIdea(data) {
  * Generate fallback idea from prompt when search fails
  */
 function generateFallbackIdeaFromPrompt(prompt) {
-  const keywords = prompt.toLowerCase().split(" ").filter(word => word.length > 3);
-  const primaryKeyword = keywords[0] || "innovation";
+  const keywords = prompt.toLowerCase().split(' ').filter(word => word.length > 3);
+  const primaryKeyword = keywords[0] || 'innovation';
 
   return {
     title: `AI-Powered ${primaryKeyword.charAt(0).toUpperCase() + primaryKeyword.slice(1)} Platform`,
@@ -325,7 +325,7 @@ function generateFallbackIdeaFromPrompt(prompt) {
     difficulty: "medium",
     target_audience: "General",
     tags: [primaryKeyword, "AI", "Innovation", "Custom"],
-    source: "fallback",
+    source: 'fallback',
     upvotes: 0,
     similarity: 0.3
   };

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { LoadingPage } from "@/components/ui/LoadingSpinner";
-import { useToast } from "@/components/ui/Toast";
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { LoadingPage } from '@/components/ui/LoadingSpinner';
+import { useToast } from '@/components/ui/Toast';
 import { 
   User, 
   Bell, 
@@ -19,7 +19,7 @@ import {
   Download,
   Trash2,
   Save
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function SettingsPage() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -29,8 +29,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
-    username: "",
-    bio: "",
+    username: '',
+    bio: '',
     preferences: {
       emailNotifications: true,
       pushNotifications: false,
@@ -42,7 +42,7 @@ export default function SettingsPage() {
   // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push("/sign-in");
+      router.push('/sign-in');
     }
   }, [isSignedIn, isLoaded, router]);
 
@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
   const loadUserProfile = async () => {
     try {
-      const response = await fetch("/api/profile");
+      const response = await fetch('/api/profile');
       
       if (response.ok) {
         const data = await response.json();
@@ -66,7 +66,7 @@ export default function SettingsPage() {
       }
       
     } catch (error) {
-      console.error("Error loading profile:", error);
+      console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
     }
@@ -93,23 +93,23 @@ export default function SettingsPage() {
     setSaving(true);
     
     try {
-      const response = await fetch("/api/profile", {
-        method: "PUT",
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(profile),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save profile");
+        throw new Error('Failed to save profile');
       }
 
-      toast.success("Profile saved successfully!");
+      toast.success('Profile saved successfully!');
       
     } catch (error) {
-      console.error("Error saving profile:", error);
-      toast.error("Failed to save profile. Please try again.");
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -117,54 +117,54 @@ export default function SettingsPage() {
 
   const exportData = async () => {
     try {
-      const response = await fetch("/api/export-data");
+      const response = await fetch('/api/export-data');
       
       if (!response.ok) {
-        throw new Error("Failed to export data");
+        throw new Error('Failed to export data');
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
+      const a = document.createElement('a');
+      a.style.display = 'none';
       a.href = url;
-      a.download = "ideavault-data.json";
+      a.download = 'ideavault-data.json';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       
-      toast.success("Data exported successfully!");
+      toast.success('Data exported successfully!');
       
     } catch (error) {
-      console.error("Error exporting data:", error);
-      toast.error("Failed to export data. Please try again.");
+      console.error('Error exporting data:', error);
+      toast.error('Failed to export data. Please try again.');
     }
   };
 
   const deleteAccount = async () => {
-    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       return;
     }
 
     try {
-      const response = await fetch("/api/delete-account", {
-        method: "DELETE",
+      const response = await fetch('/api/delete-account', {
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete account");
+        throw new Error('Failed to delete account');
       }
 
-      toast.success("Account deletion initiated. You will be logged out shortly.");
+      toast.success('Account deletion initiated. You will be logged out shortly.');
       
       // Redirect to home page after a delay
       setTimeout(() => {
-        router.push("/");
+        router.push('/');
       }, 2000);
       
     } catch (error) {
-      console.error("Error deleting account:", error);
-      toast.error("Failed to delete account. Please try again.");
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account. Please try again.');
     }
   };
 
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                   Email
                 </label>
                 <Input
-                  value={user?.emailAddresses?.[0]?.emailAddress || ""}
+                  value={user?.emailAddresses?.[0]?.emailAddress || ''}
                   disabled
                   className="bg-slate-50"
                 />
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                 <Input
                   placeholder="Enter your username"
                   value={profile.username}
-                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
                 />
               </div>
 
@@ -233,7 +233,7 @@ export default function SettingsPage() {
                 <Textarea
                   placeholder="Tell us about yourself..."
                   value={profile.bio}
-                  onChange={(e) => handleInputChange("bio", e.target.value)}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
                   rows={3}
                 />
               </div>
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={profile.preferences.emailNotifications}
-                  onChange={(e) => handlePreferenceChange("emailNotifications", e.target.checked)}
+                  onChange={(e) => handlePreferenceChange('emailNotifications', e.target.checked)}
                   className="h-4 w-4 text-slate-900 focus:ring-slate-900 border-slate-300 rounded"
                 />
               </div>
@@ -278,7 +278,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={profile.preferences.weeklyDigest}
-                  onChange={(e) => handlePreferenceChange("weeklyDigest", e.target.checked)}
+                  onChange={(e) => handlePreferenceChange('weeklyDigest', e.target.checked)}
                   className="h-4 w-4 text-slate-900 focus:ring-slate-900 border-slate-300 rounded"
                 />
               </div>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={profile.preferences.communityUpdates}
-                  onChange={(e) => handlePreferenceChange("communityUpdates", e.target.checked)}
+                  onChange={(e) => handlePreferenceChange('communityUpdates', e.target.checked)}
                   className="h-4 w-4 text-slate-900 focus:ring-slate-900 border-slate-300 rounded"
                 />
               </div>

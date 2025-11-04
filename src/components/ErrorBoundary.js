@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 
 /**
  * Global Error Boundary with Auto-Recovery
@@ -25,8 +25,8 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("[Error Boundary] Caught error:", error);
-    console.error("[Error Boundary] Error info:", errorInfo);
+    console.error('[Error Boundary] Caught error:', error);
+    console.error('[Error Boundary] Error info:', errorInfo);
 
     this.setState({
       error,
@@ -45,10 +45,10 @@ class ErrorBoundary extends React.Component {
 
   shouldAutoRetry(error) {
     const retryableErrors = [
-      "ChunkLoadError",
-      "Loading chunk",
-      "Network Error",
-      "Failed to fetch"
+      'ChunkLoadError',
+      'Loading chunk',
+      'Network Error',
+      'Failed to fetch'
     ];
 
     return retryableErrors.some(errorType => 
@@ -75,7 +75,7 @@ class ErrorBoundary extends React.Component {
   };
 
   handleManualRetry = () => {
-    console.log("[Error Boundary] Manual retry triggered");
+    console.log('[Error Boundary] Manual retry triggered');
     
     this.setState({
       hasError: false,
@@ -99,23 +99,23 @@ class ErrorBoundary extends React.Component {
     // Copy error report to clipboard
     navigator.clipboard.writeText(JSON.stringify(errorReport, null, 2))
       .then(() => {
-        alert("Error report copied to clipboard. Please share this with support.");
+        alert('Error report copied to clipboard. Please share this with support.');
       })
       .catch(() => {
-        console.error("Failed to copy error report");
+        console.error('Failed to copy error report');
       });
   };
 
   logError = async (error, errorInfo) => {
     try {
-      await fetch("/api/system-logs", {
-        method: "POST",
+      await fetch('/api/system-logs', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          operation: "error_boundary",
-          status: "error",
+          operation: 'error_boundary',
+          status: 'error',
           message: error.message,
           error_details: {
             name: error.name,
@@ -130,7 +130,7 @@ class ErrorBoundary extends React.Component {
         }),
       });
     } catch (logError) {
-      console.error("[Error Boundary] Failed to log error:", logError);
+      console.error('[Error Boundary] Failed to log error:', logError);
     }
   };
 
@@ -144,13 +144,13 @@ class ErrorBoundary extends React.Component {
                 <AlertTriangle className="h-8 w-8 text-red-600" />
               </div>
               <CardTitle className="text-2xl text-red-900">
-                {this.state.isRetrying ? "Recovering..." : "Something went wrong"}
+                {this.state.isRetrying ? 'Recovering...' : 'Something went wrong'}
               </CardTitle>
               <CardDescription>
                 {this.state.isRetrying ? (
-                  "Attempting to recover automatically..."
+                  'Attempting to recover automatically...'
                 ) : (
-                  "An unexpected error occurred. We\"re working to fix this."
+                  'An unexpected error occurred. We\'re working to fix this.'
                 )}
               </CardDescription>
             </CardHeader>
@@ -166,7 +166,7 @@ class ErrorBoundary extends React.Component {
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <h3 className="font-semibold text-red-900 mb-2">Error Details</h3>
                     <p className="text-red-800 text-sm font-mono">
-                      {this.state.error?.message || "Unknown error"}
+                      {this.state.error?.message || 'Unknown error'}
                     </p>
                     {this.state.retryCount > 0 && (
                       <p className="text-red-700 text-sm mt-2">
@@ -187,7 +187,7 @@ class ErrorBoundary extends React.Component {
                     
                     <Button 
                       variant="outline" 
-                      onClick={() => window.location.href = "/"}
+                      onClick={() => window.location.href = '/'}
                       className="flex-1"
                     >
                       <Home className="h-4 w-4 mr-2" />
@@ -217,7 +217,7 @@ class ErrorBoundary extends React.Component {
                   </div>
 
                   {/* Development Info */}
-                  {process.env.NODE_ENV === "development" && (
+                  {process.env.NODE_ENV === 'development' && (
                     <details className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <summary className="font-semibold text-gray-900 cursor-pointer">
                         Development Details
@@ -247,17 +247,17 @@ class ErrorBoundary extends React.Component {
  */
 export function useErrorHandler() {
   const handleError = (error, errorInfo = {}) => {
-    console.error("[Error Handler]", error);
+    console.error('[Error Handler]', error);
     
     // Log error to system
-    fetch("/api/system-logs", {
-      method: "POST",
+    fetch('/api/system-logs', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        operation: "client_error",
-        status: "error",
+        operation: 'client_error',
+        status: 'error',
         message: error.message,
         error_details: {
           name: error.name,
@@ -271,7 +271,7 @@ export function useErrorHandler() {
         }
       }),
     }).catch(logError => {
-      console.error("[Error Handler] Failed to log error:", logError);
+      console.error('[Error Handler] Failed to log error:', logError);
     });
   };
 

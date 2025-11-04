@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { Plus, Target, CheckCircle, Clock, TrendingUp, AlertCircle } from "lucide-react";
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { useToast } from "@/components/ui/Toast";
+import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { Plus, Target, CheckCircle, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 export default function MilestonesPage() {
   const { user, isSignedIn } = useUser();
@@ -28,16 +28,16 @@ export default function MilestonesPage() {
 
   // Form state for creating new milestones
   const [newMilestone, setNewMilestone] = useState({
-    title: "",
-    description: "",
-    target_date: "",
-    priority: "medium",
-    idea_id: ""
+    title: '',
+    description: '',
+    target_date: '',
+    priority: 'medium',
+    idea_id: ''
   });
 
   useEffect(() => {
     if (!isSignedIn) {
-      router.push("/sign-in");
+      router.push('/sign-in');
       return;
     }
 
@@ -120,8 +120,8 @@ export default function MilestonesPage() {
 
   const calculateStats = (milestonesData) => {
     const total = milestonesData.length;
-    const completed = milestonesData.filter(m => m.status === "completed").length;
-    const inProgress = milestonesData.filter(m => m.status === "in_progress").length;
+    const completed = milestonesData.filter(m => m.status === 'completed').length;
+    const inProgress = milestonesData.filter(m => m.status === 'in_progress').length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     setStats({
@@ -135,27 +135,27 @@ export default function MilestonesPage() {
   const handleCreateMilestone = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/milestones", {
-        method: "POST",
+      const response = await fetch('/api/milestones', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(newMilestone),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create milestone");
+        throw new Error('Failed to create milestone');
       }
 
       const data = await response.json();
       setMilestones(prev => [...prev, data.milestone]);
       calculateStats([...milestones, data.milestone]);
       setNewMilestone({
-        title: "",
-        description: "",
-        target_date: "",
-        priority: "medium",
-        idea_id: ""
+        title: '',
+        description: '',
+        target_date: '',
+        priority: 'medium',
+        idea_id: ''
       });
       setShowCreateForm(false);
     } catch (err) {
@@ -166,15 +166,15 @@ export default function MilestonesPage() {
   const updateMilestoneStatus = async (milestoneId, newStatus) => {
     try {
       const response = await fetch(`/api/milestones/${milestoneId}`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update milestone");
+        throw new Error('Failed to update milestone');
       }
 
       const updatedMilestones = milestones.map(m =>
@@ -256,7 +256,7 @@ export default function MilestonesPage() {
                 <div className="space-y-3">
                   <div className="flex items-start">
                     <span className="bg-indigo-600 text-white text-sm font-bold rounded-full h-6 w-6 flex items-center justify-center mr-3 mt-0.5">1</span>
-                    <p className="text-slate-700">Create milestones for each business idea you"re developing</p>
+                    <p className="text-slate-700">Create milestones for each business idea you're developing</p>
                   </div>
                   <div className="flex items-start">
                     <span className="bg-indigo-600 text-white text-sm font-bold rounded-full h-6 w-6 flex items-center justify-center mr-3 mt-0.5">2</span>
@@ -481,22 +481,22 @@ export default function MilestonesPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-medium text-slate-900">{milestone.title}</h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          milestone.priority === "high"
-                            ? "bg-red-100 text-red-800"
-                            : milestone.priority === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
+                          milestone.priority === 'high'
+                            ? 'bg-red-100 text-red-800'
+                            : milestone.priority === 'medium'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
                         }`}>
                           {milestone.priority}
                         </span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          milestone.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : milestone.status === "in_progress"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-slate-100 text-slate-800"
+                          milestone.status === 'completed'
+                            ? 'bg-green-100 text-green-800'
+                            : milestone.status === 'in_progress'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-slate-100 text-slate-800'
                         }`}>
-                          {milestone.status.replace("_", " ")}
+                          {milestone.status.replace('_', ' ')}
                         </span>
                       </div>
 
@@ -512,18 +512,18 @@ export default function MilestonesPage() {
                     </div>
 
                     <div className="flex gap-2 ml-4">
-                      {milestone.status !== "completed" && (
+                      {milestone.status !== 'completed' && (
                         <button
-                          onClick={() => updateMilestoneStatus(milestone.id, "completed")}
+                          onClick={() => updateMilestoneStatus(milestone.id, 'completed')}
                           className="text-green-600 hover:text-green-700 p-1 transition-colors"
                           title="Mark as completed"
                         >
                           <CheckCircle className="w-5 h-5" />
                         </button>
                       )}
-                      {milestone.status === "not_started" && (
+                      {milestone.status === 'not_started' && (
                         <button
-                          onClick={() => updateMilestoneStatus(milestone.id, "in_progress")}
+                          onClick={() => updateMilestoneStatus(milestone.id, 'in_progress')}
                           className="text-blue-600 hover:text-blue-700 p-1 transition-colors"
                           title="Start working"
                         >

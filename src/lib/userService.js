@@ -1,4 +1,4 @@
-import { supabaseUser, supabaseUserServer } from "./supabase";
+import { supabaseUser, supabaseUserServer } from './supabase';
 
 // In-memory storage for when database is not available
 const ideaCache = new Map();
@@ -8,7 +8,7 @@ const userIdeasCache = new Map();
 export async function saveUserIdea(userId, ideaData) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_ideas")
+      .from('user_ideas')
       .insert({
         user_id: userId,
         title: ideaData.title,
@@ -26,9 +26,9 @@ export async function saveUserIdea(userId, ideaData) {
       .single();
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_ideas table not found, returning mock saved idea");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_ideas table not found, returning mock saved idea');
         return {
           id: Math.floor(Math.random() * 1000000),
           user_id: userId,
@@ -45,8 +45,8 @@ export async function saveUserIdea(userId, ideaData) {
           updated_at: new Date().toISOString()
         };
       }
-      console.error("Error saving user idea:", error);
-      throw new Error("Failed to save idea");
+      console.error('Error saving user idea:', error);
+      throw new Error('Failed to save idea');
     }
 
     // Also store in cache
@@ -58,7 +58,7 @@ export async function saveUserIdea(userId, ideaData) {
     
     return data;
   } catch (error) {
-    console.error("Save user idea error:", error);
+    console.error('Save user idea error:', error);
     // Create idea with proper ID and store in cache
     const idea = {
       id: ideaData.id || Math.floor(Math.random() * 1000000),
@@ -87,30 +87,30 @@ export async function saveUserIdea(userId, ideaData) {
   }
 }
 
-// Get user"s saved ideas
+// Get user's saved ideas
 export async function getUserIdeas(userId, limit = 50, offset = 0) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_ideas")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+      .from('user_ideas')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_ideas table not found, checking cache");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_ideas table not found, checking cache');
         const cachedIdeas = userIdeasCache.get(userId) || [];
         return cachedIdeas.slice(offset, offset + limit);
       }
-      console.error("Error fetching user ideas:", error);
-      throw new Error("Failed to fetch user ideas");
+      console.error('Error fetching user ideas:', error);
+      throw new Error('Failed to fetch user ideas');
     }
 
     return data || [];
   } catch (error) {
-    console.error("Get user ideas error:", error);
+    console.error('Get user ideas error:', error);
     // Check cache as fallback
     const cachedIdeas = userIdeasCache.get(userId) || [];
     return cachedIdeas.slice(offset, offset + limit);
@@ -121,19 +121,19 @@ export async function getUserIdeas(userId, limit = 50, offset = 0) {
 export async function deleteUserIdea(userId, ideaId) {
   try {
     const { error } = await supabaseUser
-      .from("user_ideas")
+      .from('user_ideas')
       .delete()
-      .eq("id", ideaId)
-      .eq("user_id", userId);
+      .eq('id', ideaId)
+      .eq('user_id', userId);
 
     if (error) {
-      console.error("Error deleting user idea:", error);
-      throw new Error("Failed to delete idea");
+      console.error('Error deleting user idea:', error);
+      throw new Error('Failed to delete idea');
     }
 
     return true;
   } catch (error) {
-    console.error("Delete user idea error:", error);
+    console.error('Delete user idea error:', error);
     throw error;
   }
 }
@@ -142,26 +142,26 @@ export async function deleteUserIdea(userId, ideaId) {
 export async function saveUserFeedback(userId, ideaId, feedbackData) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_feedback")
+      .from('user_feedback')
       .insert({
         user_id: userId,
         idea_id: ideaId,
         rating: feedbackData.rating,
         comment: feedbackData.comment,
-        feedback_type: feedbackData.type || "general",
+        feedback_type: feedbackData.type || 'general',
         created_at: new Date().toISOString()
       })
       .select()
       .single();
 
     if (error) {
-      console.error("Error saving user feedback:", error);
-      throw new Error("Failed to save feedback");
+      console.error('Error saving user feedback:', error);
+      throw new Error('Failed to save feedback');
     }
 
     return data;
   } catch (error) {
-    console.error("Save user feedback error:", error);
+    console.error('Save user feedback error:', error);
     throw error;
   }
 }
@@ -170,48 +170,48 @@ export async function saveUserFeedback(userId, ideaId, feedbackData) {
 export async function getIdeaFeedback(ideaId, limit = 20) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_feedback")
+      .from('user_feedback')
       .select(`
         *,
         user_profiles(username, avatar_url)
       `)
-      .eq("idea_id", ideaId)
-      .order("created_at", { ascending: false })
+      .eq('idea_id', ideaId)
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
-      console.error("Error fetching idea feedback:", error);
-      throw new Error("Failed to fetch feedback");
+      console.error('Error fetching idea feedback:', error);
+      throw new Error('Failed to fetch feedback');
     }
 
     return data || [];
   } catch (error) {
-    console.error("Get idea feedback error:", error);
+    console.error('Get idea feedback error:', error);
     throw error;
   }
 }
 
-// Get user"s feedback history
+// Get user's feedback history
 export async function getUserFeedback(userId, limit = 50) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_feedback")
+      .from('user_feedback')
       .select(`
         *,
         user_ideas(title, category)
       `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
-      console.error("Error fetching user feedback:", error);
-      throw new Error("Failed to fetch user feedback");
+      console.error('Error fetching user feedback:', error);
+      throw new Error('Failed to fetch user feedback');
     }
 
     return data || [];
   } catch (error) {
-    console.error("Get user feedback error:", error);
+    console.error('Get user feedback error:', error);
     throw error;
   }
 }
@@ -220,7 +220,7 @@ export async function getUserFeedback(userId, limit = 50) {
 export async function upsertUserProfile(userId, profileData) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_profiles")
+      .from('user_profiles')
       .upsert({
         user_id: userId,
         username: profileData.username,
@@ -234,13 +234,13 @@ export async function upsertUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error("Error upserting user profile:", error);
-      throw new Error("Failed to update profile");
+      console.error('Error upserting user profile:', error);
+      throw new Error('Failed to update profile');
     }
 
     return data;
   } catch (error) {
-    console.error("Upsert user profile error:", error);
+    console.error('Upsert user profile error:', error);
     throw error;
   }
 }
@@ -249,19 +249,19 @@ export async function upsertUserProfile(userId, profileData) {
 export async function getUserProfile(userId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_profiles")
-      .select("*")
-      .eq("user_id", userId)
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== "PGRST116") { // Not found error
-      console.error("Error fetching user profile:", error);
-      throw new Error("Failed to fetch profile");
+    if (error && error.code !== 'PGRST116') { // Not found error
+      console.error('Error fetching user profile:', error);
+      throw new Error('Failed to fetch profile');
     }
 
     return data;
   } catch (error) {
-    console.error("Get user profile error:", error);
+    console.error('Get user profile error:', error);
     throw error;
   }
 }
@@ -270,7 +270,7 @@ export async function getUserProfile(userId) {
 export async function saveSearchHistory(userId, searchData) {
   try {
     const { data, error } = await supabaseUser
-      .from("search_history")
+      .from('search_history')
       .insert({
         user_id: userId,
         query: searchData.query,
@@ -282,13 +282,13 @@ export async function saveSearchHistory(userId, searchData) {
       .single();
 
     if (error) {
-      console.error("Error saving search history:", error);
-      throw new Error("Failed to save search history");
+      console.error('Error saving search history:', error);
+      throw new Error('Failed to save search history');
     }
 
     return data;
   } catch (error) {
-    console.error("Save search history error:", error);
+    console.error('Save search history error:', error);
     throw error;
   }
 }
@@ -297,20 +297,20 @@ export async function saveSearchHistory(userId, searchData) {
 export async function getUserSearchHistory(userId, limit = 20) {
   try {
     const { data, error } = await supabaseUser
-      .from("search_history")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+      .from('search_history')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
-      console.error("Error fetching search history:", error);
-      throw new Error("Failed to fetch search history");
+      console.error('Error fetching search history:', error);
+      throw new Error('Failed to fetch search history');
     }
 
     return data || [];
   } catch (error) {
-    console.error("Get search history error:", error);
+    console.error('Get search history error:', error);
     throw error;
   }
 }
@@ -319,13 +319,13 @@ export async function getUserSearchHistory(userId, limit = 20) {
 export async function getCommunityValidation(ideaId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_feedback")
-      .select("rating, feedback_type")
-      .eq("idea_id", ideaId);
+      .from('user_feedback')
+      .select('rating, feedback_type')
+      .eq('idea_id', ideaId);
 
     if (error) {
-      console.error("Error fetching community validation:", error);
-      throw new Error("Failed to fetch community validation");
+      console.error('Error fetching community validation:', error);
+      throw new Error('Failed to fetch community validation');
     }
 
     // Calculate metrics
@@ -341,7 +341,7 @@ export async function getCommunityValidation(ideaId) {
       feedback_types: calculateFeedbackTypes(data)
     };
   } catch (error) {
-    console.error("Get community validation error:", error);
+    console.error('Get community validation error:', error);
     throw error;
   }
 }
@@ -361,7 +361,7 @@ function calculateRatingDistribution(ratings) {
 function calculateFeedbackTypes(feedbackData) {
   const types = {};
   feedbackData.forEach(item => {
-    const type = item.feedback_type || "general";
+    const type = item.feedback_type || 'general';
     types[type] = (types[type] || 0) + 1;
   });
   return types;
@@ -373,46 +373,46 @@ function calculateFeedbackTypes(feedbackData) {
 export async function getUserPreferences(userId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_preferences")
-      .select("*")
-      .eq("user_id", userId)
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
       .single();
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_preferences table not found, returning default preferences");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_preferences table not found, returning default preferences');
         return {
           user_id: userId,
-          theme: "light",
+          theme: 'light',
           notifications: true,
-          language: "en",
+          language: 'en',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
       }
-      if (error.code !== "PGRST116") { // Not found error
-        console.error("Error fetching user preferences:", error);
-        throw new Error("Failed to fetch preferences");
+      if (error.code !== 'PGRST116') { // Not found error
+        console.error('Error fetching user preferences:', error);
+        throw new Error('Failed to fetch preferences');
       }
     }
 
     return data || {
       user_id: userId,
-      theme: "light",
+      theme: 'light',
       notifications: true,
-      language: "en",
+      language: 'en',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
   } catch (error) {
-    console.error("Get user preferences error:", error);
+    console.error('Get user preferences error:', error);
     // Return default preferences instead of throwing error
     return {
       user_id: userId,
-      theme: "light",
+      theme: 'light',
       notifications: true,
-      language: "en",
+      language: 'en',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -422,7 +422,7 @@ export async function getUserPreferences(userId) {
 export async function upsertUserPreferences(userId, preferences) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_preferences")
+      .from('user_preferences')
       .upsert({
         user_id: userId,
         ...preferences,
@@ -432,13 +432,13 @@ export async function upsertUserPreferences(userId, preferences) {
       .single();
 
     if (error) {
-      console.error("Error upserting user preferences:", error);
-      throw new Error("Failed to save preferences");
+      console.error('Error upserting user preferences:', error);
+      throw new Error('Failed to save preferences');
     }
 
     return data;
   } catch (error) {
-    console.error("Upsert user preferences error:", error);
+    console.error('Upsert user preferences error:', error);
     throw error;
   }
 }
@@ -447,24 +447,24 @@ export async function upsertUserPreferences(userId, preferences) {
 export async function updateUserIdea(userId, ideaId, updates) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_ideas")
+      .from('user_ideas')
       .update({
         ...updates,
         updated_at: new Date().toISOString()
       })
-      .eq("id", ideaId)
-      .eq("user_id", userId)
+      .eq('id', ideaId)
+      .eq('user_id', userId)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating user idea:", error);
-      throw new Error("Failed to update idea");
+      console.error('Error updating user idea:', error);
+      throw new Error('Failed to update idea');
     }
 
     return data;
   } catch (error) {
-    console.error("Update user idea error:", error);
+    console.error('Update user idea error:', error);
     throw error;
   }
 }
@@ -472,29 +472,29 @@ export async function updateUserIdea(userId, ideaId, updates) {
 export async function getUserIdeaById(userId, ideaId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_ideas")
-      .select("*")
-      .eq("id", ideaId)
-      .eq("user_id", userId)
+      .from('user_ideas')
+      .select('*')
+      .eq('id', ideaId)
+      .eq('user_id', userId)
       .single();
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_ideas table not found, checking cache");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_ideas table not found, checking cache');
         const cachedIdea = ideaCache.get(ideaId);
         if (cachedIdea && cachedIdea.user_id === userId) {
           return cachedIdea;
         }
         return null;
       }
-      console.error("Error fetching user idea:", error);
-      throw new Error("Failed to fetch idea");
+      console.error('Error fetching user idea:', error);
+      throw new Error('Failed to fetch idea');
     }
 
     return data;
   } catch (error) {
-    console.error("Get user idea by ID error:", error);
+    console.error('Get user idea by ID error:', error);
     // Check cache as fallback
     const cachedIdea = ideaCache.get(ideaId);
     if (cachedIdea && cachedIdea.user_id === userId) {
@@ -508,31 +508,31 @@ export async function getUserIdeaById(userId, ideaId) {
 export async function getMilestones(userId, filters = {}) {
   try {
     let query = supabaseUser
-      .from("milestones")
+      .from('milestones')
       .select(`
         *,
         user_ideas(title, category)
       `)
-      .eq("user_id", userId);
+      .eq('user_id', userId);
 
     if (filters.status) {
-      query = query.eq("status", filters.status);
+      query = query.eq('status', filters.status);
     }
 
     if (filters.idea_id) {
-      query = query.eq("idea_id", filters.idea_id);
+      query = query.eq('idea_id', filters.idea_id);
     }
 
-    const { data, error } = await query.order("created_at", { ascending: false });
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching milestones:", error);
-      throw new Error("Failed to fetch milestones");
+      console.error('Error fetching milestones:', error);
+      throw new Error('Failed to fetch milestones');
     }
 
     return data || [];
   } catch (error) {
-    console.error("Get milestones error:", error);
+    console.error('Get milestones error:', error);
     throw error;
   }
 }
@@ -540,7 +540,7 @@ export async function getMilestones(userId, filters = {}) {
 export async function createMilestone(userId, milestoneData) {
   try {
     const { data, error } = await supabaseUser
-      .from("milestones")
+      .from('milestones')
       .insert({
         user_id: userId,
         ...milestoneData,
@@ -550,13 +550,13 @@ export async function createMilestone(userId, milestoneData) {
       .single();
 
     if (error) {
-      console.error("Error creating milestone:", error);
-      throw new Error("Failed to create milestone");
+      console.error('Error creating milestone:', error);
+      throw new Error('Failed to create milestone');
     }
 
     return data;
   } catch (error) {
-    console.error("Create milestone error:", error);
+    console.error('Create milestone error:', error);
     throw error;
   }
 }
@@ -564,24 +564,24 @@ export async function createMilestone(userId, milestoneData) {
 export async function updateMilestone(userId, milestoneId, updates) {
   try {
     const { data, error } = await supabaseUser
-      .from("milestones")
+      .from('milestones')
       .update({
         ...updates,
         updated_at: new Date().toISOString()
       })
-      .eq("id", milestoneId)
-      .eq("user_id", userId)
+      .eq('id', milestoneId)
+      .eq('user_id', userId)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating milestone:", error);
-      throw new Error("Failed to update milestone");
+      console.error('Error updating milestone:', error);
+      throw new Error('Failed to update milestone');
     }
 
     return data;
   } catch (error) {
-    console.error("Update milestone error:", error);
+    console.error('Update milestone error:', error);
     throw error;
   }
 }
@@ -589,19 +589,19 @@ export async function updateMilestone(userId, milestoneId, updates) {
 export async function deleteMilestone(userId, milestoneId) {
   try {
     const { error } = await supabaseUser
-      .from("milestones")
+      .from('milestones')
       .delete()
-      .eq("id", milestoneId)
-      .eq("user_id", userId);
+      .eq('id', milestoneId)
+      .eq('user_id', userId);
 
     if (error) {
-      console.error("Error deleting milestone:", error);
-      throw new Error("Failed to delete milestone");
+      console.error('Error deleting milestone:', error);
+      throw new Error('Failed to delete milestone');
     }
 
     return true;
   } catch (error) {
-    console.error("Delete milestone error:", error);
+    console.error('Delete milestone error:', error);
     throw error;
   }
 }
@@ -610,15 +610,15 @@ export async function deleteMilestone(userId, milestoneId) {
 export async function getUserCredits(userId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_credits")
-      .select("*")
-      .eq("user_id", userId)
+      .from('user_credits')
+      .select('*')
+      .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== "PGRST116") { // Not found error
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_credits table not found, returning default credits");
+    if (error && error.code !== 'PGRST116') { // Not found error
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_credits table not found, returning default credits');
         return {
           user_id: userId,
           credits: 100,
@@ -627,8 +627,8 @@ export async function getUserCredits(userId) {
           updated_at: new Date().toISOString()
         };
       }
-      console.error("Error fetching user credits:", error);
-      throw new Error("Failed to fetch credits");
+      console.error('Error fetching user credits:', error);
+      throw new Error('Failed to fetch credits');
     }
 
     // If no credits record exists, create one with default values
@@ -638,7 +638,7 @@ export async function getUserCredits(userId) {
 
     return data;
   } catch (error) {
-    console.error("Get user credits error:", error);
+    console.error('Get user credits error:', error);
     // Return default credits if database is not set up
     return {
       user_id: userId,
@@ -653,7 +653,7 @@ export async function getUserCredits(userId) {
 export async function createUserCredits(userId) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_credits")
+      .from('user_credits')
       .insert({
         user_id: userId,
         total_credits: 10,
@@ -663,9 +663,9 @@ export async function createUserCredits(userId) {
       .single();
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("user_credits table not found, returning default credits");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('user_credits table not found, returning default credits');
         return {
           user_id: userId,
           credits: 100,
@@ -674,13 +674,13 @@ export async function createUserCredits(userId) {
           updated_at: new Date().toISOString()
         };
       }
-      console.error("Error creating user credits:", error);
-      throw new Error("Failed to create credits");
+      console.error('Error creating user credits:', error);
+      throw new Error('Failed to create credits');
     }
 
     return data;
   } catch (error) {
-    console.error("Create user credits error:", error);
+    console.error('Create user credits error:', error);
     // Return default credits if database is not set up
     return {
       user_id: userId,
@@ -695,23 +695,23 @@ export async function createUserCredits(userId) {
 export async function updateUserCredits(userId, creditsUsed) {
   try {
     const { data, error } = await supabaseUser
-      .from("user_credits")
+      .from('user_credits')
       .update({
         used_credits: creditsUsed,
         updated_at: new Date().toISOString()
       })
-      .eq("user_id", userId)
+      .eq('user_id', userId)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating user credits:", error);
-      throw new Error("Failed to update credits");
+      console.error('Error updating user credits:', error);
+      throw new Error('Failed to update credits');
     }
 
     return data;
   } catch (error) {
-    console.error("Update user credits error:", error);
+    console.error('Update user credits error:', error);
     throw error;
   }
 }
@@ -720,25 +720,25 @@ export async function updateUserCredits(userId, creditsUsed) {
 export async function getIdeaReport(userId, ideaId) {
   try {
     const { data, error } = await supabaseUser
-      .from("idea_reports")
-      .select("*")
-      .eq("idea_id", ideaId)
-      .eq("user_id", userId)
+      .from('idea_reports')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== "PGRST116") { // Not found error
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("idea_reports table not found, returning null");
+    if (error && error.code !== 'PGRST116') { // Not found error
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('idea_reports table not found, returning null');
         return null;
       }
-      console.error("Error fetching idea report:", error);
-      throw new Error("Failed to fetch report");
+      console.error('Error fetching idea report:', error);
+      throw new Error('Failed to fetch report');
     }
 
     return data;
   } catch (error) {
-    console.error("Get idea report error:", error);
+    console.error('Get idea report error:', error);
     // Return null if database is not set up
     return null;
   }
@@ -747,7 +747,7 @@ export async function getIdeaReport(userId, ideaId) {
 export async function createIdeaReport(userId, ideaId, reportData) {
   try {
     const { data, error } = await supabaseUser
-      .from("idea_reports")
+      .from('idea_reports')
       .insert({
         idea_id: ideaId,
         user_id: userId,
@@ -758,9 +758,9 @@ export async function createIdeaReport(userId, ideaId, reportData) {
       .single();
 
     if (error) {
-      // Check if it"s a table not found error (PGRST205)
-      if (error.code === "PGRST205") {
-        console.warn("idea_reports table not found, returning mock report");
+      // Check if it's a table not found error (PGRST205)
+      if (error.code === 'PGRST205') {
+        console.warn('idea_reports table not found, returning mock report');
         return {
           id: Math.floor(Math.random() * 1000000),
           idea_id: ideaId,
@@ -771,13 +771,13 @@ export async function createIdeaReport(userId, ideaId, reportData) {
           updated_at: new Date().toISOString()
         };
       }
-      console.error("Error creating idea report:", error);
-      throw new Error("Failed to create report");
+      console.error('Error creating idea report:', error);
+      throw new Error('Failed to create report');
     }
 
     return data;
   } catch (error) {
-    console.error("Create idea report error:", error);
+    console.error('Create idea report error:', error);
     // Return mock data if database is not set up
     return {
       id: Math.floor(Math.random() * 1000000),

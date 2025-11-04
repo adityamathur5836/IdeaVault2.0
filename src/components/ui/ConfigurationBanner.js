@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
-import { getConfigurationStatus } from "@/lib/envValidator";
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { getConfigurationStatus } from '@/lib/envValidator';
 import {
   AlertTriangle,
   CheckCircle,
@@ -13,9 +13,9 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink
-} from "lucide-react";
+} from 'lucide-react';
 
-export function ConfigurationBanner({ onDismiss, className = "" }) {
+export function ConfigurationBanner({ onDismiss, className = '' }) {
   const [status, setStatus] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -30,13 +30,13 @@ export function ConfigurationBanner({ onDismiss, className = "" }) {
     onDismiss?.();
   };
 
-  // Don"t show banner if configuration is valid or dismissed
+  // Don't show banner if configuration is valid or dismissed
   if (!status || status.isValid || isDismissed) {
     return null;
   }
 
-  const criticalErrors = status.errors.filter(error => error.severity === "error");
-  const warnings = status.errors.filter(error => error.severity === "warning");
+  const criticalErrors = status.errors.filter(error => error.severity === 'error');
+  const warnings = status.errors.filter(error => error.severity === 'warning');
 
   return (
     <Card className={`border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg ${className}`}>
@@ -73,7 +73,7 @@ export function ConfigurationBanner({ onDismiss, className = "" }) {
                       <X className="h-4 w-4 text-red-600" />
                     )}
                     <span className={`text-xs font-medium capitalize ${
-                      isValid ? "text-green-700" : "text-red-700"
+                      isValid ? 'text-green-700' : 'text-red-700'
                     }`}>
                       {feature}
                     </span>
@@ -112,7 +112,7 @@ export function ConfigurationBanner({ onDismiss, className = "" }) {
                               {error.category}
                             </span>
                             <Badge 
-                              variant={error.severity === "error" ? "destructive" : "secondary"}
+                              variant={error.severity === 'error' ? 'destructive' : 'secondary'}
                               size="xs"
                             >
                               {error.severity}
@@ -137,7 +137,7 @@ export function ConfigurationBanner({ onDismiss, className = "" }) {
                               variant="outline"
                               size="sm"
                               className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                              onClick={() => window.open("/docs/setup", "_blank")}
+                              onClick={() => window.open('/docs/setup', '_blank')}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
                               View Setup Guide

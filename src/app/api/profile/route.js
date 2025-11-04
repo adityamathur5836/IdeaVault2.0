@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { parseErrorMessage } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { parseErrorMessage } from '@/lib/utils';
 
 export async function GET(request) {
   try {
@@ -8,15 +8,15 @@ export async function GET(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     // Mock user profile (in a real app, this would fetch from database)
     const mockProfile = {
-      username: "demo_user",
-      bio: "Passionate entrepreneur exploring innovative business ideas",
+      username: 'demo_user',
+      bio: 'Passionate entrepreneur exploring innovative business ideas',
       preferences: {
         emailNotifications: true,
         pushNotifications: false,
@@ -30,7 +30,7 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error("Profile GET API error:", error);
+    console.error('Profile GET API error:', error);
     return NextResponse.json(
       { error: parseErrorMessage(error) },
       { status: 500 }
@@ -44,7 +44,7 @@ export async function PUT(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -54,15 +54,15 @@ export async function PUT(request) {
     // Validate required fields
     if (!profileData.username && !profileData.bio && !profileData.preferences) {
       return NextResponse.json(
-        { error: "At least one field must be provided" },
+        { error: 'At least one field must be provided' },
         { status: 400 }
       );
     }
 
     // Mock profile update (in a real app, this would update the database)
     const updatedProfile = {
-      username: profileData.username || "demo_user",
-      bio: profileData.bio || "",
+      username: profileData.username || 'demo_user',
+      bio: profileData.bio || '',
       preferences: profileData.preferences || {
         emailNotifications: true,
         pushNotifications: false,
@@ -78,7 +78,7 @@ export async function PUT(request) {
     });
 
   } catch (error) {
-    console.error("Profile PUT API error:", error);
+    console.error('Profile PUT API error:', error);
     return NextResponse.json(
       { error: parseErrorMessage(error) },
       { status: 500 }
@@ -89,14 +89,14 @@ export async function PUT(request) {
 // Handle unsupported methods
 export async function POST() {
   return NextResponse.json(
-    { error: "Method not allowed" },
+    { error: 'Method not allowed' },
     { status: 405 }
   );
 }
 
 export async function DELETE() {
   return NextResponse.json(
-    { error: "Method not allowed" },
+    { error: 'Method not allowed' },
     { status: 405 }
   );
 }

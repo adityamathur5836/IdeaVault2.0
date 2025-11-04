@@ -1,6 +1,6 @@
-import React from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
-import { Button } from "./Button";
+import React from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from './Button';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -19,8 +19,8 @@ class ErrorBoundary extends React.Component {
     });
     
     // Log error to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error caught by boundary:", error, errorInfo);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error caught by boundary:', error, errorInfo);
     }
   }
 
@@ -55,7 +55,7 @@ class ErrorBoundary extends React.Component {
                 Refresh Page
               </Button>
             </div>
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm text-slate-500 hover:text-slate-700">
                   Error Details (Development)
@@ -80,7 +80,7 @@ export default ErrorBoundary;
 // Hook-based error boundary for functional components
 export function useErrorHandler() {
   return (error, errorInfo) => {
-    console.error("Error caught:", error, errorInfo);
+    console.error('Error caught:', error, errorInfo);
     // In a real app, you might want to send this to an error reporting service
   };
 }

@@ -1,11 +1,11 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ToastProvider } from "@/components/ui/Toast";
-import { DashboardProvider } from "@/contexts/DashboardContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { validateEnvironment } from "@/lib/envValidator";
-import AppErrorBoundary from "@/components/ui/AppErrorBoundary";
+import { ClerkProvider } from '@clerk/nextjs';
+import { ToastProvider } from '@/components/ui/Toast';
+import { DashboardProvider } from '@/contexts/DashboardContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { validateEnvironment } from '@/lib/envValidator';
+import AppErrorBoundary from '@/components/ui/AppErrorBoundary';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,7 +39,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   // Validate environment on server-side
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     validateEnvironment();
   }
 

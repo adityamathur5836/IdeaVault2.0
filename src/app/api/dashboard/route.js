@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserIdeas } from "@/lib/userService";
-import { parseErrorMessage } from "@/lib/utils";
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { getUserIdeas } from '@/lib/userService';
+import { parseErrorMessage } from '@/lib/utils';
 
 export async function GET(request) {
   try {
@@ -9,7 +9,7 @@ export async function GET(request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -67,7 +67,7 @@ export async function GET(request) {
     });
 
   } catch (error) {
-    console.error("Dashboard API error:", error);
+    console.error('Dashboard API error:', error);
     return NextResponse.json(
       { error: parseErrorMessage(error) },
       { status: 500 }
@@ -78,21 +78,21 @@ export async function GET(request) {
 // Handle unsupported methods
 export async function POST() {
   return NextResponse.json(
-    { error: "Method not allowed" },
+    { error: 'Method not allowed' },
     { status: 405 }
   );
 }
 
 export async function PUT() {
   return NextResponse.json(
-    { error: "Method not allowed" },
+    { error: 'Method not allowed' },
     { status: 405 }
   );
 }
 
 export async function DELETE() {
   return NextResponse.json(
-    { error: "Method not allowed" },
+    { error: 'Method not allowed' },
     { status: 405 }
   );
 }
