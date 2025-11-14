@@ -712,90 +712,147 @@ async function generateMVPPrompt(idea, reportData) {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+    // Extract data safely with fallbacks
+    const coreFeatures = reportData?.product_strategy?.core_features || [];
+    const mvpScope = reportData?.product_strategy?.mvp_scope || 'Essential features for initial launch';
+    const targetCustomers = reportData?.business_concept?.target_customers || idea.target_audience || 'General users';
+    const valueProp = reportData?.business_concept?.value_proposition || idea.description;
+    const techRequirements = reportData?.product_strategy?.technology_requirements || 'Modern web technologies';
+
     const prompt = `Based on this business idea and analysis, create a comprehensive prompt for Lovable/Bolt to generate a frontend MVP:
 
-Business Idea: ${idea.title}
-Description: ${idea.description}
-Category: ${idea.category}
-Target Audience: ${idea.target_audience}
+**Business Idea:** ${idea.title}
+**Description:** ${idea.description}
+**Category:** ${idea.category || 'Technology'}
+**Target Audience:** ${targetCustomers}
+**Value Proposition:** ${valueProp}
 
-Core Features: ${reportData.product_strategy?.core_features?.join(', ') || 'Core functionality'}
-MVP Definition: ${reportData.product_strategy?.mvp_definition || 'Basic version with essential features'}
+**Core Features:** ${Array.isArray(coreFeatures) && coreFeatures.length > 0 ? coreFeatures.join(', ') : 'User authentication, main dashboard, core functionality, responsive design'}
+**MVP Scope:** ${mvpScope}
+**Technology Requirements:** ${techRequirements}
 
 Create a detailed, actionable prompt that includes:
 1. App overview and purpose
-2. Target user personas
-3. Core features and functionality
+2. Target user personas and their needs
+3. Core features and functionality (be specific)
 4. UI/UX requirements and design preferences
 5. Technical specifications and integrations
 6. Specific pages/screens needed
 7. Color scheme and branding guidelines
 8. Responsive design requirements
+9. Key user flows and interactions
 
-Format the prompt to be copy-paste ready for Lovable/Bolt. Make it specific, detailed, and actionable. The prompt should be 300-500 words and include all necessary details for a developer to build a functional MVP.
+Format the prompt to be copy-paste ready for Lovable/Bolt. Make it specific, detailed, and actionable. The prompt should be 400-600 words and include all necessary details for a developer to build a functional MVP that addresses the core value proposition.
 
 Return only the prompt text, no additional formatting or explanations.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response.text();
 
+    if (!response || response.trim().length < 100) {
+      console.warn('MVP prompt response too short, using fallback');
+      return generateFallbackMVPPrompt(idea, reportData);
+    }
+
     return response.trim();
 
   } catch (error) {
     console.error('Error generating MVP prompt:', error);
-    return generateFallbackMVPPrompt(idea);
+    return generateFallbackMVPPrompt(idea, reportData);
   }
 }
 
 /**
  * Generate fallback MVP prompt when AI generation fails
  * @param {Object} idea - The business idea
+ * @param {Object} reportData - Optional report data for enhanced fallback
  * @returns {string} - Fallback MVP prompt
  */
-function generateFallbackMVPPrompt(idea) {
+function generateFallbackMVPPrompt(idea, reportData = null) {
+  // Extract useful data from report if available
+  const coreFeatures = reportData?.product_strategy?.core_features || [];
+  const targetCustomers = reportData?.business_concept?.target_customers || idea.target_audience || 'users';
+  const valueProp = reportData?.business_concept?.value_proposition || idea.description;
+  const category = idea.category || 'Technology';
+
+  // Generate specific features based on category
+  const categoryFeatures = {
+    'Technology': ['User dashboard', 'Data analytics', 'API integrations', 'Real-time updates'],
+    'Healthcare': ['Patient management', 'Appointment scheduling', 'Health tracking', 'Secure messaging'],
+    'Finance': ['Account management', 'Transaction tracking', 'Budget planning', 'Financial reports'],
+    'Education': ['Course management', 'Progress tracking', 'Interactive content', 'Assessment tools'],
+    'E-commerce': ['Product catalog', 'Shopping cart', 'Payment processing', 'Order management'],
+    'Food & Drink': ['Menu management', 'Order system', 'Delivery tracking', 'Customer reviews'],
+    'Travel': ['Booking system', 'Itinerary planning', 'Location services', 'Travel guides'],
+    'Entertainment': ['Content library', 'User preferences', 'Social features', 'Recommendation engine'],
+    'Productivity': ['Task management', 'Collaboration tools', 'Time tracking', 'Project organization'],
+    'Social': ['User profiles', 'Social feeds', 'Messaging system', 'Community features'],
+    'Business': ['CRM functionality', 'Analytics dashboard', 'Team management', 'Reporting tools']
+  };
+
+  const specificFeatures = categoryFeatures[category] || categoryFeatures['Technology'];
+  const features = coreFeatures.length > 0 ? coreFeatures : specificFeatures;
+
   return `Create a modern, responsive web application for "${idea.title}".
 
 **App Overview:**
-Build a ${idea.category.toLowerCase()} platform that ${idea.description}. The app should target ${idea.target_audience} with an intuitive, user-friendly interface.
+Build a ${category.toLowerCase()} platform that ${valueProp}. The app should serve ${targetCustomers} with an intuitive, user-friendly interface that delivers immediate value.
+
+**Target Users:**
+${targetCustomers} who need ${category.toLowerCase()} solutions that are efficient, reliable, and easy to use.
 
 **Core Features:**
+${features.map(feature => `- ${feature}`).join('\n')}
 - User authentication and profile management
-- Main dashboard with key functionality
-- Core ${idea.category.toLowerCase()} features
 - Responsive design for mobile and desktop
-- Clean, modern UI with good UX practices
+- Real-time data updates and notifications
+- Clean, modern UI with excellent UX
 
-**Design Requirements:**
+**User Interface Requirements:**
 - Modern, clean design with professional appearance
-- Responsive layout that works on all devices
-- Intuitive navigation and user flow
-- Accessible design following WCAG guidelines
-- Color scheme: Use a professional palette with primary colors in blue/indigo tones
+- Responsive layout that works seamlessly on all devices
+- Intuitive navigation with clear user flows
+- Accessible design following WCAG 2.1 guidelines
+- Color scheme: Professional palette with primary colors in blue/indigo tones
+- Typography: Clean, readable fonts with proper hierarchy
+- Loading states and smooth transitions
 
 **Technical Specifications:**
-- React-based frontend with modern JavaScript
-- Component-based architecture
-- State management for user data and app state
-- API integration capabilities
-- Form validation and error handling
-- Loading states and user feedback
+- React-based frontend with TypeScript
+- Component-based architecture with reusable components
+- State management for user data and application state
+- RESTful API integration capabilities
+- Form validation with real-time feedback
+- Error handling with user-friendly messages
+- Performance optimization and code splitting
 
-**Pages/Screens Needed:**
-- Landing page with value proposition
-- User authentication (login/signup)
-- Main dashboard
-- Core feature pages
-- User profile/settings
-- Help/support page
+**Key Pages/Screens:**
+- Landing page with clear value proposition
+- User authentication (login/signup/forgot password)
+- Main dashboard with key metrics and actions
+- Core feature pages specific to ${category.toLowerCase()}
+- User profile and account settings
+- Help/support documentation
+- Mobile-optimized views for all pages
+
+**User Experience Flow:**
+1. User lands on homepage and understands value immediately
+2. Quick signup/login process
+3. Onboarding flow to set up account
+4. Main dashboard provides overview and quick actions
+5. Core features are easily accessible and intuitive
+6. Settings and help are readily available
 
 **Additional Requirements:**
-- Fast loading times and optimized performance
-- SEO-friendly structure
-- Cross-browser compatibility
-- Mobile-first responsive design
-- Professional typography and spacing
+- Fast loading times (< 3 seconds initial load)
+- SEO-friendly structure with proper meta tags
+- Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
+- Mobile-first responsive design approach
+- Professional typography and consistent spacing
+- Offline capability for core features
+- Analytics integration for user behavior tracking
 
-Build this as a production-ready MVP that can be deployed and used by real users immediately.`;
+Build this as a production-ready MVP that can be deployed immediately and provide real value to users from day one. Focus on core functionality that solves the primary user problem effectively.`;
 }
 
 /**

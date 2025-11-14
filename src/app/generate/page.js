@@ -101,38 +101,82 @@ export default function GeneratePage() {
   // Freeform state
   const [prompt, setPrompt] = useState('');
 
-  // Restore persisted state on mount
+  // Clear form state when component unmounts or user navigates away
   useEffect(() => {
-    try {
-      const persisted = JSON.parse(localStorage.getItem('generate_form_state') || '{}');
-      if (persisted.mode) setMode(persisted.mode);
-      if (persisted.formData) setFormData(prev => ({ ...prev, ...persisted.formData }));
-      if (persisted.prompt) setPrompt(persisted.prompt);
-      if (persisted.numberOfIdeas) setNumberOfIdeas(persisted.numberOfIdeas);
-      const cachedIdeas = JSON.parse(localStorage.getItem('generate_latest_ideas') || '[]');
-      if (Array.isArray(cachedIdeas) && cachedIdeas.length > 0) setGeneratedIdeas(cachedIdeas);
-    } catch (e) {
-      console.warn('Failed to restore generate form state:', e);
-    }
+    const clearFormState = () => {
+      try {
+        localStorage.removeItem('generate_form_state');
+        localStorage.removeItem('generate_latest_ideas');
+      } catch (_) {}
+    };
+
+    // Clear form state when user navigates away or closes tab
+    const handleBeforeUnload = () => {
+      clearFormState();
+    };
+
+    // Clear form state when component unmounts (navigation)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        clearFormState();
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup function to remove listeners and clear state
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearFormState();
+    };
   }, []);
 
-  // Persist state whenever it changes
+  // Only restore state from URL parameters or session storage (not localStorage)
   useEffect(() => {
     try {
-      localStorage.setItem('generate_form_state', JSON.stringify({
-        mode,
-        formData,
-        prompt,
-        numberOfIdeas,
-      }));
-    } catch (_) {}
-  }, [mode, formData, prompt, numberOfIdeas]);
+      // Check if there are URL parameters to restore
+      const urlParams = new URLSearchParams(window.location.search);
+      const categoryParam = urlParams.get('category');
+      const difficultyParam = urlParams.get('difficulty');
+      const audienceParam = urlParams.get('audience');
+
+      if (categoryParam || difficultyParam || audienceParam) {
+        setFormData(prev => ({
+          ...prev,
+          category: categoryParam || prev.category,
+          difficulty: difficultyParam || prev.difficulty,
+          targetAudience: audienceParam || prev.targetAudience
+        }));
+      }
+    } catch (e) {
+      console.warn('Failed to restore form state from URL:', e);
+    }
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  // Clear form function
+  const clearForm = () => {
+    setFormData({
+      category: '',
+      difficulty: '',
+      targetAudience: '',
+      budget: '',
+      timeframe: '',
+      interests: ''
+    });
+    setPrompt('');
+    setGeneratedIdeas([]);
+    setError(null);
+    toast.success('Form cleared');
   };
 
   /**
@@ -463,16 +507,26 @@ export default function GeneratePage() {
                   </p>
                 </div>
 
-                <Button
-                  onClick={generateIdea}
-                  disabled={loading}
-                  loading={loading}
-                  className="w-full"
-                  size="lg"
-                >
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Generate {numberOfIdeas} Ideas
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={clearForm}
+                    variant="outline"
+                    className="flex-1"
+                    size="lg"
+                  >
+                    Clear Form
+                  </Button>
+                  <Button
+                    onClick={generateIdea}
+                    disabled={loading}
+                    loading={loading}
+                    className="flex-[2]"
+                    size="lg"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Generate {numberOfIdeas} Ideas
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
